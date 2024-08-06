@@ -1,13 +1,21 @@
 # snn
 
+Objetivo del preporcesamiento:
+Crear un fichero por cada KPI distinto que cumplan con las siguientes condiciones:
+
+- Propiedades: timestamp, value, label
+
+- Las tuplas deben estar organizadas de menor a mayor por la propiedad timestamp
+
+* Verificar que se ha creado un dataset por cada KPI.
+
+- Verificar si el rango de diferencia entre cada tupla es regular (por ejemplo, para el KPI 02e99bd4f6cfb33f la diferencia entre tupla y tupla es de 60), en caso de no serlo añadir las tuplas necesarias con value 0 y label 0. Además crear un dataset con la siguiente nomenclatura: 02e99bd4f6cfb33f_filled.csv, donde añado una columna llamada status, y le pongo valor ADDED a todas las tuplas que fueron añadidas, de esta forma es sencillo verificar cuantas tuplas fueron añadidas después del preprocesamiento. En el ejemplo a continuación se puede observar que se han añadido 3233 tuplas:
 
 # iops_check.py
 
-iops_check.py es el archivo principal para ejecutar el script.
+iops_check.py es el archivo principal para ejecutar el script de preprocesamiento.
 
 ## Descripción
-
-Este script realiza varias operaciones relacionadas con la verificación y procesamiento de KPI (Key Performance Indicators) en un conjunto de datos. Las principales funciones incluyen la verificación de la existencia de archivos KPI, la creación de nuevos conjuntos de datos para cada KPI y el llenado de timestamps faltantes.
 
 Este script realiza varias operaciones relacionadas con la verificación y procesamiento de KPI (Key Performance Indicators) en un conjunto de datos. Las principales funciones incluyen la verificación de la existencia de archivos KPI, la creación de nuevos conjuntos de datos para cada KPI y el llenado de timestamps faltantes.
 
