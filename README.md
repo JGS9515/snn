@@ -11,6 +11,7 @@ Crear un fichero por cada KPI distinto que cumplan con las siguientes condicione
 
 - Verificar si el rango de diferencia entre cada tupla es regular (por ejemplo, para el KPI 02e99bd4f6cfb33f la diferencia entre tupla y tupla es de 60), en caso de no serlo añadir las tuplas necesarias con value 0 y label 0. Además crear un dataset con la siguiente nomenclatura: 02e99bd4f6cfb33f_filled.csv, donde añado una columna llamada status, y le pongo valor ADDED a todas las tuplas que fueron añadidas, de esta forma es sencillo verificar cuantas tuplas fueron añadidas después del preprocesamiento. En el ejemplo a continuación se puede observar que se han añadido 3233 tuplas:
 
+![imagen](ejemmplo.png)
 # iops_check.py
 
 iops_check.py es el archivo principal para ejecutar el script de preprocesamiento.
