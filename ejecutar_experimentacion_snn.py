@@ -8,6 +8,8 @@ from bindsnet.learning import PostPre
 
 #Código ppal para lanzar la experimentación para la detección de anomalías con bindsnet y STDP.
 #Este código se usaría como base para iterar sobre las distintas combinaciones de parámetros.
+#'nuu.csv'#
+path='datasets/iops/preliminar/train_procesado/1c35dbf57f55f5e4'
 
 #Establecemos valores para los parámetros que nos interesan:
 nu1_pre=0.1 #Actualización de pesos presinápticos en la capa A. Valores positivos penalizan y negativos excitan.
@@ -33,21 +35,84 @@ umbral=-52
 decaimiento=100
 
 T = 1000 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
-
-#Ruta de los datos que se emplearán.
-folder_data='' 
-
+#Usar el máximo de T para evitar problemas con los periodos de datos.
+expansion=100
 
 #Construimos las tuplas n1 y n2 para pasar al modelo:
 nu1=(nu1_pre,nu1_post)
 nu2=(nu2_pre,nu2_post)
 
-#Declaramos el vector de cuantiles. Para ello, tomamos el máximo y mínimo de los datos de entrenamiento (esto hay que sacarlo de esos datos, claro):
-amplitud=maximo-minimo
-cuantiles=torch.FloatTensor(np.arange(minimo-a*amplitud,maximo+amplitud*a,(maximo-minimo)*r))
+def reset_voltajes(network):
+    network.layers['B'].v=torch.full(network.layers['B'].v.shape,-65)
+    return network
 
-#Ahora, establecemos el valor de R, que será el número de neuronas de la capa de entrada:
-R=len(cuantiles)-1
+
+def dividir(data,minimo):
+    #Función que divide los datos de entrenamiento, para considerar aisladamente cada subsecuencia de datos normales.
+    #Tomamos los intervalos:
+    intervals = []
+    in_sequence = False
+    
+    #Iteramos para identificar los intervalos:
+    for i in range(len(data)):
+        if data.loc[i, 'label'] == 0:
+            if not in_sequence:
+                start_idx = i
+                in_sequence = True
+            end_idx = i+1
+        else:
+            if in_sequence:
+                intervals.append((start_idx, end_idx))
+                in_sequence = False
+    
+    # Agrega la posición del último elemento de los datos de entrada:
+    if in_sequence:
+        intervals.append((start_idx, end_idx))
+    
+    #Creamos un dataframe con los intervalos encontrados:
+    intervals_df = pd.DataFrame(intervals, columns=['inicio', 'final'])
+    
+    subs=[]
+    #Iteramos para dividir:
+    for i,row in intervals_df.iterrows():
+        inicio_tmp=row['inicio']
+        final_tmp=row['final']
+        if final_tmp-inicio_tmp>=minimo:
+            subs.append(data.iloc[inicio_tmp:final_tmp].reset_index(drop=True))
+    
+    return subs
+
+
+def padd(data, T):
+    lon = len(data)
+    # Calcular el múltiplo más cercano de T superior al número actual de filas
+    lon2 = ((lon // T) + 1) * T
+    # Calcular el número de filas adicionales necesarias
+    lon_adicional = lon2 - lon
+    
+    # Crear un DataFrame con filas adicionales llenas de NaN
+    if lon_adicional > 0:
+        datanul = pd.DataFrame(np.nan, index=range(lon_adicional), columns=data.columns)
+        # Concatenar el DataFrame original con el DataFrame de padding
+        data = pd.concat([data, datanul], ignore_index=True)
+    
+    return data
+
+
+def expandir(serie, n):
+    # Crea gemelo de la serie:
+    serie2 = np.zeros_like(serie)
+    
+    # Identificar los índices donde hay un 1:
+    indices = np.where(serie == 1)[0]
+    
+    # Poner a 1 los valores en el rango [índice-n, índice+n]
+    for idx in indices:
+        start = max(0, idx - n)
+        end = min(len(serie), idx + n + 1)
+        serie2[start:end] = 1
+    
+    return pd.Series(serie2, index=serie.index)
 
 
 #Función para convertir a spikes las entradas:
@@ -61,14 +126,13 @@ def podar(x,q1,q2,cuantiles=None):
     return s
 
 
-def leer_data(input_folder,T):
-    #Función que lee los datos y los prepara:
-    data=pd.read_csv(input_folder)
+def convertir_data(data,T,cuantiles,R,is_train=False):
+    #Función que lee los datos y los prepara.
     
     #Esta parte debe ser modificada para obtener la serie temporal de interés
     #almacenada en la variable serie.
     #
-    serie=torch.FloatTensor(data[variable])
+    serie=torch.FloatTensor(data['value'])
     
     #Tomamos la longitud de la serie.
     long=serie.shape[0]
@@ -89,7 +153,10 @@ def leer_data(input_folder,T):
     
     #Lo dividimos en función del tiempo de exposición T:
     secuencias = torch.split(serie2input,T,dim=1)
-    secuencias=secuencias[0:len(secuencias)-1]
+    
+    if is_train:
+        #Encaso de estar entrenando, tendríamos que quitar la última secuencia:
+        secuencias=secuencias[0:len(secuencias)-1]
     
     return secuencias
 
@@ -178,6 +245,9 @@ def ejecutar_red(secuencias,network,source_monitor,target_monitor,T):
         sp0.append(spikes['X'].sum(axis=2))
         sp1.append(spikes['B'].sum(axis=2))
         voltages = {"Y": target_monitor.get("v")}
+        #Reseteo voltajes, venga:
+        network=reset_voltajes(network)
+        
     
     #Concatenamos y devolvemos:
     sp0=torch.concatenate(sp0)
@@ -189,28 +259,79 @@ def ejecutar_red(secuencias,network,source_monitor,target_monitor,T):
     return [sp0,sp1,network]
 
 
-# Create the network.
+#Lectura de datos:
+#Esperamos que estos datos tengan las columnas 'label' y 'value'.
+
+data=pd.read_csv(path,na_values=['NA'])
+
+#Asegurarse de que los tipos sean correctos:
+data['value']=data['value'].astype('float64')
+data['label']=data['label'].astype('Int64')
+
+#Y ponemos a 0 los valores nulos del label para no tener problemas al filtrar por esta columna:
+data.loc[data['label'].isna(),'label']=0
+
+split = len(data) // 2
+
+data_train=data[:split]
+data_test=data[split:]
+
+#Reseteamos el índice:
+data_train = data_train.reset_index(drop=True)
+data_test = data_test.reset_index(drop=True)
+
+#Expandimos:
+data_train['label']=expandir(data_train['label'],expansion)
+
+#Sacamos máximos y mínimos:
+minimo=min(data_train['value'][data_train['label']!=1])
+maximo=max(data_train['value'][data_train['label']!=1])
+
+#Declaramos el vector de cuantiles. Para ello, tomamos el máximo y mínimo de los datos de entrenamiento (esto hay que sacarlo de esos datos)
+
+amplitud=maximo-minimo
+cuantiles=torch.FloatTensor(np.arange(minimo-a*amplitud,maximo+amplitud*a,(maximo-minimo)*r))
+
+#Ahora, establecemos el valor de R, que será el número de neuronas de la capa de entrada:
+R=len(cuantiles)-1
+
+#Crea la red.
 network, source_monitor,target_monitor = crear_red()
 
-#Input folders
-#Probar con dos ejecuciones de spikes bien, a ver qué pasa.
-secuencias_bien2train=leer_data('train.csv',T)
-secuencias2test=leer_data('test.csv',T)
+#Dividimos el train en secuencias:
+data_train=dividir(data_train,T)
 
-print(f'Longitud de dataset de entrenamiento: {len(secuencias_bien2train)}')
-# Simulate network on input data.
-spikes_input,spikes,network=ejecutar_red(secuencias_bien2train,network,source_monitor,target_monitor,T)
+#Paddeamos el test:
+data_test=padd(data_test,T)
 
-#Establecemos que estamos de inferencia:
+#En este punto, entrenamos para cada secuencia consecutiva del train:
+
+#Para cada secuencia del train, tenemos que pasarla y entrenar la red:
+network.learning=True
+
+for s in data_train:
+    secuencias2train=convertir_data(s,T,cuantiles,R,is_train=True)
+    print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
+    spikes_input,spikes,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,T)
+    #Reseteamos los voltajes:
+    network=reset_voltajes(network)
+
+#Ahora, el test:
 network.learning=False
+secuencias2test=convertir_data(data_test,T,cuantiles,R)
 
 print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
 spikes_input,spikes,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,T)
 
 np.savetxt('spikes',spikes,delimiter=',')
 
+np.savetxt('label',np.array(data_test['label']),delimiter=',')
+
+np.savetxt('value',np.array(data_test['value']),delimiter=',')
+
 with open('n1','w') as n1:
     n1.write(f'{R}\n')
 
 with open('n2','w') as n2:
     n2.write(f'{n}\n')
+
