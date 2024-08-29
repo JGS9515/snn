@@ -87,7 +87,7 @@ El script depende de los siguientes módulos:
   - 'Is an anomaly if many people are entering near the end of an event'
   - 'Is an anomaly if many people are exiting when there is no event'
   - 'Is an anomaly if many people are entering when there is no event'
-    **A partir de 15 minutos o menos es considerado cerca del inicio o del fin de un evento**
+**A partir de 15 minutos o menos es considerado cerca del inicio o del fin de un evento**
 
   - El resultado del último paso (en caso de utilizar la configuración de **reasonOfAnomaly** en True). De esta forma es sencillo verificar cuantas tuplas son anómalas después del preprocesamiento. En el ejemplo a continuación se puede observar que se hay 2500 tuplas anómalas: 
 
