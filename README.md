@@ -79,12 +79,13 @@ El script depende de los siguientes módulos:
 ## CalIt2_fill_label_field
 
 - Contamos con el parámetro **personsCount** para establecer cuando analizar si es necesario analizar si es anomalía. 
-    - Ejemplo: En el caso de utilizar 4, solamente entrará en consideración valores por encima de 4, el resto se considera no anómalo por lo que el label será 0.
-  - El segundo parámetro es un booleano  **reasonOfAnomaly**, se utiliza para añadir un atributo llamado **reason** con los motivos de los casos anómalos. Los posibles valores son:
-    - 'Is an anomaly if many people are exiting at the start of an event'
-    - 'Is an anomaly if many people are entering at the end of an event'
-    - 'Is an anomaly if many people are exiting when there is no event'
-    - 'Is an anomaly if many people are entering when there is no event'
+  - Ejemplo: En el caso de utilizar 4, solamente entrará en consideración valores por encima de 4, el resto se considera no anómalo por lo que el label será 0.
+- Para decidir si es un campo anómalo se tiene en cuenta
+- El segundo parámetro es un booleano  **reasonOfAnomaly**, se utiliza para añadir un atributo llamado **reason** con los motivos de los casos anómalos. Los posibles valores son:
+  - 'Is an anomaly if many people are exiting at the start of an event'
+  - 'Is an anomaly if many people are entering at the end of an event'
+  - 'Is an anomaly if many people are exiting when there is no event'
+  - 'Is an anomaly if many people are entering when there is no event'
 
   - El resultado del último paso (en caso de utilizar la configuración de **reasonOfAnomaly** en True). De esta forma es sencillo verificar cuantas tuplas son anómalas después del preprocesamiento. En el ejemplo a continuación se puede observar que se hay 2500 tuplas anómalas: 
 
