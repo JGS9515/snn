@@ -233,24 +233,24 @@ timestamp,value,label,reason
 1122363000,6,1,Is an anomaly if many people are entering when there is no event
 1122364800,4,0,
 1122364800,7,1,Is an anomaly if many people are entering when there is no event
-1122366600,18,1,Is an anomaly if many people are exiting at the start of an event
+1122366600,18,1,Is an anomaly if many people are exiting near the start of an event
 1122366600,22,0,
 1122368400,8,0,
-1122368400,9,1,Is an anomaly if many people are entering at the end of an event
+1122368400,9,1,Is an anomaly if many people are entering near the end of an event
 1122370200,9,0,
-1122370200,26,1,Is an anomaly if many people are entering at the end of an event
+1122370200,26,1,Is an anomaly if many people are entering near the end of an event
 1122372000,8,0,
-1122372000,13,1,Is an anomaly if many people are entering at the end of an event
+1122372000,13,1,Is an anomaly if many people are entering near the end of an event
 1122373800,6,0,
 1122373800,3,0,
 1122375600,25,0,
-1122375600,12,1,Is an anomaly if many people are entering at the end of an event
+1122375600,12,1,Is an anomaly if many people are entering near the end of an event
 1122377400,12,0,
-1122377400,12,1,Is an anomaly if many people are entering at the end of an event
+1122377400,12,1,Is an anomaly if many people are entering near the end of an event
 1122379200,13,0,
-1122379200,11,1,Is an anomaly if many people are entering at the end of an event
+1122379200,11,1,Is an anomaly if many people are entering near the end of an event
 1122381000,12,0,
-1122381000,11,1,Is an anomaly if many people are entering at the end of an event
+1122381000,11,1,Is an anomaly if many people are entering near the end of an event
 1122382800,11,1,Is an anomaly if many people are exiting when there is no event
 1122382800,18,1,Is an anomaly if many people are entering when there is no event
 1122384600,4,0,
@@ -512,21 +512,21 @@ timestamp,value,label,reason
 1122615000,0,0,
 1122615000,2,0,
 1122616800,0,0,
-1122616800,8,1,Is an anomaly if many people are entering at the end of an event
+1122616800,8,1,Is an anomaly if many people are entering near the end of an event
 1122618600,3,0,
-1122618600,6,1,Is an anomaly if many people are entering at the end of an event
+1122618600,6,1,Is an anomaly if many people are entering near the end of an event
 1122620400,1,0,
-1122620400,25,1,Is an anomaly if many people are entering at the end of an event
+1122620400,25,1,Is an anomaly if many people are entering near the end of an event
 1122622200,15,0,
-1122622200,25,1,Is an anomaly if many people are entering at the end of an event
+1122622200,25,1,Is an anomaly if many people are entering near the end of an event
 1122624000,26,0,
-1122624000,12,1,Is an anomaly if many people are entering at the end of an event
+1122624000,12,1,Is an anomaly if many people are entering near the end of an event
 1122625800,13,0,
-1122625800,12,1,Is an anomaly if many people are entering at the end of an event
+1122625800,12,1,Is an anomaly if many people are entering near the end of an event
 1122627600,9,0,
 1122627600,2,0,
 1122629400,6,0,
-1122629400,17,1,Is an anomaly if many people are entering at the end of an event
+1122629400,17,1,Is an anomaly if many people are entering near the end of an event
 1122631200,23,1,Is an anomaly if many people are exiting when there is no event
 1122631200,9,1,Is an anomaly if many people are entering when there is no event
 1122633000,12,1,Is an anomaly if many people are exiting when there is no event
@@ -923,16 +923,16 @@ timestamp,value,label,reason
 1122984000,15,1,Is an anomaly if many people are entering when there is no event
 1122985800,6,1,Is an anomaly if many people are exiting when there is no event
 1122985800,8,1,Is an anomaly if many people are entering when there is no event
-1122987600,9,1,Is an anomaly if many people are exiting at the start of an event
+1122987600,9,1,Is an anomaly if many people are exiting near the start of an event
 1122987600,20,0,
 1122989400,10,0,
-1122989400,23,1,Is an anomaly if many people are entering at the end of an event
+1122989400,23,1,Is an anomaly if many people are entering near the end of an event
 1122991200,7,0,
-1122991200,14,1,Is an anomaly if many people are entering at the end of an event
+1122991200,14,1,Is an anomaly if many people are entering near the end of an event
 1122993000,15,0,
 1122993000,4,0,
 1122994800,9,0,
-1122994800,6,1,Is an anomaly if many people are entering at the end of an event
+1122994800,6,1,Is an anomaly if many people are entering near the end of an event
 1122996600,10,1,Is an anomaly if many people are exiting when there is no event
 1122996600,12,1,Is an anomaly if many people are entering when there is no event
 1122998400,11,1,Is an anomaly if many people are exiting when there is no event
@@ -1119,16 +1119,16 @@ timestamp,value,label,reason
 1123160400,21,1,Is an anomaly if many people are entering when there is no event
 1123162200,17,1,Is an anomaly if many people are exiting when there is no event
 1123162200,12,1,Is an anomaly if many people are entering when there is no event
-1123164000,18,1,Is an anomaly if many people are exiting at the start of an event
+1123164000,18,1,Is an anomaly if many people are exiting near the start of an event
 1123164000,36,0,
 1123165800,28,0,
-1123165800,44,1,Is an anomaly if many people are entering at the end of an event
+1123165800,44,1,Is an anomaly if many people are entering near the end of an event
 1123167600,6,0,
-1123167600,6,1,Is an anomaly if many people are entering at the end of an event
+1123167600,6,1,Is an anomaly if many people are entering near the end of an event
 1123169400,21,0,
-1123169400,5,1,Is an anomaly if many people are entering at the end of an event
+1123169400,5,1,Is an anomaly if many people are entering near the end of an event
 1123171200,40,0,
-1123171200,20,1,Is an anomaly if many people are entering at the end of an event
+1123171200,20,1,Is an anomaly if many people are entering near the end of an event
 1123173000,13,1,Is an anomaly if many people are exiting when there is no event
 1123173000,8,1,Is an anomaly if many people are entering when there is no event
 1123174800,0,0,
@@ -1184,21 +1184,21 @@ timestamp,value,label,reason
 1123219800,0,0,
 1123219800,0,0,
 1123221600,2,0,
-1123221600,7,1,Is an anomaly if many people are entering at the end of an event
+1123221600,7,1,Is an anomaly if many people are entering near the end of an event
 1123223400,1,0,
-1123223400,7,1,Is an anomaly if many people are entering at the end of an event
+1123223400,7,1,Is an anomaly if many people are entering near the end of an event
 1123225200,7,0,
-1123225200,22,1,Is an anomaly if many people are entering at the end of an event
+1123225200,22,1,Is an anomaly if many people are entering near the end of an event
 1123227000,16,0,
-1123227000,23,1,Is an anomaly if many people are entering at the end of an event
+1123227000,23,1,Is an anomaly if many people are entering near the end of an event
 1123228800,16,0,
-1123228800,6,1,Is an anomaly if many people are entering at the end of an event
+1123228800,6,1,Is an anomaly if many people are entering near the end of an event
 1123230600,15,0,
-1123230600,16,1,Is an anomaly if many people are entering at the end of an event
+1123230600,16,1,Is an anomaly if many people are entering near the end of an event
 1123232400,4,0,
-1123232400,8,1,Is an anomaly if many people are entering at the end of an event
+1123232400,8,1,Is an anomaly if many people are entering near the end of an event
 1123234200,5,0,
-1123234200,12,1,Is an anomaly if many people are entering at the end of an event
+1123234200,12,1,Is an anomaly if many people are entering near the end of an event
 1123236000,17,1,Is an anomaly if many people are exiting when there is no event
 1123236000,7,1,Is an anomaly if many people are entering when there is no event
 1123237800,12,1,Is an anomaly if many people are exiting when there is no event
@@ -1572,37 +1572,37 @@ timestamp,value,label,reason
 1123569000,0,0,
 1123569000,3,0,
 1123570800,3,0,
-1123570800,5,1,Is an anomaly if many people are entering at the end of an event
+1123570800,5,1,Is an anomaly if many people are entering near the end of an event
 1123572600,6,0,
-1123572600,15,1,Is an anomaly if many people are entering at the end of an event
+1123572600,15,1,Is an anomaly if many people are entering near the end of an event
 1123574400,1,0,
-1123574400,25,1,Is an anomaly if many people are entering at the end of an event
+1123574400,25,1,Is an anomaly if many people are entering near the end of an event
 1123576200,3,0,
 1123576200,9,0,
 1123578000,13,0,
 1123578000,4,0,
 1123579800,9,0,
-1123579800,25,1,Is an anomaly if many people are entering at the end of an event
+1123579800,25,1,Is an anomaly if many people are entering near the end of an event
 1123581600,13,0,
-1123581600,22,1,Is an anomaly if many people are entering at the end of an event
+1123581600,22,1,Is an anomaly if many people are entering near the end of an event
 1123583400,11,0,
-1123583400,8,1,Is an anomaly if many people are entering at the end of an event
+1123583400,8,1,Is an anomaly if many people are entering near the end of an event
 1123585200,19,0,
-1123585200,22,1,Is an anomaly if many people are entering at the end of an event
+1123585200,22,1,Is an anomaly if many people are entering near the end of an event
 1123587000,16,0,
-1123587000,18,1,Is an anomaly if many people are entering at the end of an event
+1123587000,18,1,Is an anomaly if many people are entering near the end of an event
 1123588800,13,0,
-1123588800,12,1,Is an anomaly if many people are entering at the end of an event
+1123588800,12,1,Is an anomaly if many people are entering near the end of an event
 1123590600,4,0,
-1123590600,7,1,Is an anomaly if many people are entering at the end of an event
+1123590600,7,1,Is an anomaly if many people are entering near the end of an event
 1123592400,15,0,
-1123592400,12,1,Is an anomaly if many people are entering at the end of an event
+1123592400,12,1,Is an anomaly if many people are entering near the end of an event
 1123594200,13,0,
-1123594200,10,1,Is an anomaly if many people are entering at the end of an event
+1123594200,10,1,Is an anomaly if many people are entering near the end of an event
 1123596000,11,0,
 1123596000,4,0,
 1123597800,13,0,
-1123597800,21,1,Is an anomaly if many people are entering at the end of an event
+1123597800,21,1,Is an anomaly if many people are entering near the end of an event
 1123599600,12,1,Is an anomaly if many people are exiting when there is no event
 1123599600,13,1,Is an anomaly if many people are entering when there is no event
 1123601400,9,1,Is an anomaly if many people are exiting when there is no event
@@ -1664,41 +1664,41 @@ timestamp,value,label,reason
 1123651800,3,0,
 1123651800,15,0,
 1123653600,0,0,
-1123653600,5,1,Is an anomaly if many people are entering at the end of an event
+1123653600,5,1,Is an anomaly if many people are entering near the end of an event
 1123655400,2,0,
 1123655400,2,0,
 1123657200,2,0,
 1123657200,4,0,
 1123659000,5,0,
-1123659000,9,1,Is an anomaly if many people are entering at the end of an event
+1123659000,9,1,Is an anomaly if many people are entering near the end of an event
 1123660800,5,0,
-1123660800,8,1,Is an anomaly if many people are entering at the end of an event
+1123660800,8,1,Is an anomaly if many people are entering near the end of an event
 1123662600,8,0,
-1123662600,15,1,Is an anomaly if many people are entering at the end of an event
+1123662600,15,1,Is an anomaly if many people are entering near the end of an event
 1123664400,8,0,
-1123664400,17,1,Is an anomaly if many people are entering at the end of an event
+1123664400,17,1,Is an anomaly if many people are entering near the end of an event
 1123666200,11,0,
-1123666200,14,1,Is an anomaly if many people are entering at the end of an event
+1123666200,14,1,Is an anomaly if many people are entering near the end of an event
 1123668000,20,0,
-1123668000,15,1,Is an anomaly if many people are entering at the end of an event
+1123668000,15,1,Is an anomaly if many people are entering near the end of an event
 1123669800,12,0,
-1123669800,16,1,Is an anomaly if many people are entering at the end of an event
+1123669800,16,1,Is an anomaly if many people are entering near the end of an event
 1123671600,11,0,
-1123671600,11,1,Is an anomaly if many people are entering at the end of an event
+1123671600,11,1,Is an anomaly if many people are entering near the end of an event
 1123673400,8,0,
-1123673400,15,1,Is an anomaly if many people are entering at the end of an event
+1123673400,15,1,Is an anomaly if many people are entering near the end of an event
 1123675200,11,0,
-1123675200,20,1,Is an anomaly if many people are entering at the end of an event
+1123675200,20,1,Is an anomaly if many people are entering near the end of an event
 1123677000,7,0,
-1123677000,8,1,Is an anomaly if many people are entering at the end of an event
+1123677000,8,1,Is an anomaly if many people are entering near the end of an event
 1123678800,13,0,
-1123678800,6,1,Is an anomaly if many people are entering at the end of an event
+1123678800,6,1,Is an anomaly if many people are entering near the end of an event
 1123680600,15,0,
-1123680600,10,1,Is an anomaly if many people are entering at the end of an event
+1123680600,10,1,Is an anomaly if many people are entering near the end of an event
 1123682400,9,0,
-1123682400,6,1,Is an anomaly if many people are entering at the end of an event
+1123682400,6,1,Is an anomaly if many people are entering near the end of an event
 1123684200,5,0,
-1123684200,7,1,Is an anomaly if many people are entering at the end of an event
+1123684200,7,1,Is an anomaly if many people are entering near the end of an event
 1123686000,25,1,Is an anomaly if many people are exiting when there is no event
 1123686000,6,1,Is an anomaly if many people are entering when there is no event
 1123687800,10,1,Is an anomaly if many people are exiting when there is no event
@@ -1856,21 +1856,21 @@ timestamp,value,label,reason
 1123824600,0,0,
 1123824600,0,0,
 1123826400,2,0,
-1123826400,10,1,Is an anomaly if many people are entering at the end of an event
+1123826400,10,1,Is an anomaly if many people are entering near the end of an event
 1123828200,6,0,
-1123828200,7,1,Is an anomaly if many people are entering at the end of an event
+1123828200,7,1,Is an anomaly if many people are entering near the end of an event
 1123830000,3,0,
-1123830000,19,1,Is an anomaly if many people are entering at the end of an event
+1123830000,19,1,Is an anomaly if many people are entering near the end of an event
 1123831800,6,0,
-1123831800,24,1,Is an anomaly if many people are entering at the end of an event
+1123831800,24,1,Is an anomaly if many people are entering near the end of an event
 1123833600,19,0,
-1123833600,21,1,Is an anomaly if many people are entering at the end of an event
+1123833600,21,1,Is an anomaly if many people are entering near the end of an event
 1123835400,14,0,
-1123835400,12,1,Is an anomaly if many people are entering at the end of an event
+1123835400,12,1,Is an anomaly if many people are entering near the end of an event
 1123837200,8,0,
 1123837200,3,0,
 1123839000,7,0,
-1123839000,14,1,Is an anomaly if many people are entering at the end of an event
+1123839000,14,1,Is an anomaly if many people are entering near the end of an event
 1123840800,21,1,Is an anomaly if many people are exiting when there is no event
 1123840800,10,1,Is an anomaly if many people are entering when there is no event
 1123842600,9,1,Is an anomaly if many people are exiting when there is no event
@@ -2249,24 +2249,24 @@ timestamp,value,label,reason
 1124177400,16,1,Is an anomaly if many people are entering when there is no event
 1124179200,6,1,Is an anomaly if many people are exiting when there is no event
 1124179200,11,1,Is an anomaly if many people are entering when there is no event
-1124181000,8,1,Is an anomaly if many people are exiting at the start of an event
+1124181000,8,1,Is an anomaly if many people are exiting near the start of an event
 1124181000,31,0,
 1124182800,6,0,
-1124182800,25,1,Is an anomaly if many people are entering at the end of an event
+1124182800,25,1,Is an anomaly if many people are entering near the end of an event
 1124184600,9,0,
-1124184600,10,1,Is an anomaly if many people are entering at the end of an event
+1124184600,10,1,Is an anomaly if many people are entering near the end of an event
 1124186400,17,0,
-1124186400,14,1,Is an anomaly if many people are entering at the end of an event
+1124186400,14,1,Is an anomaly if many people are entering near the end of an event
 1124188200,12,0,
-1124188200,14,1,Is an anomaly if many people are entering at the end of an event
+1124188200,14,1,Is an anomaly if many people are entering near the end of an event
 1124190000,12,0,
-1124190000,12,1,Is an anomaly if many people are entering at the end of an event
+1124190000,12,1,Is an anomaly if many people are entering near the end of an event
 1124191800,24,0,
-1124191800,14,1,Is an anomaly if many people are entering at the end of an event
+1124191800,14,1,Is an anomaly if many people are entering near the end of an event
 1124193600,13,0,
-1124193600,16,1,Is an anomaly if many people are entering at the end of an event
+1124193600,16,1,Is an anomaly if many people are entering near the end of an event
 1124195400,11,0,
-1124195400,12,1,Is an anomaly if many people are entering at the end of an event
+1124195400,12,1,Is an anomaly if many people are entering near the end of an event
 1124197200,17,1,Is an anomaly if many people are exiting when there is no event
 1124197200,12,1,Is an anomaly if many people are entering when there is no event
 1124199000,6,1,Is an anomaly if many people are exiting when there is no event
@@ -2436,49 +2436,49 @@ timestamp,value,label,reason
 1124346600,0,0,
 1124346600,0,0,
 1124348400,0,0,
-1124348400,6,1,Is an anomaly if many people are entering at the end of an event
+1124348400,6,1,Is an anomaly if many people are entering near the end of an event
 1124350200,3,0,
-1124350200,17,1,Is an anomaly if many people are entering at the end of an event
+1124350200,17,1,Is an anomaly if many people are entering near the end of an event
 1124352000,8,0,
-1124352000,17,1,Is an anomaly if many people are entering at the end of an event
+1124352000,17,1,Is an anomaly if many people are entering near the end of an event
 1124353800,4,0,
-1124353800,7,1,Is an anomaly if many people are entering at the end of an event
+1124353800,7,1,Is an anomaly if many people are entering near the end of an event
 1124355600,9,0,
-1124355600,11,1,Is an anomaly if many people are entering at the end of an event
+1124355600,11,1,Is an anomaly if many people are entering near the end of an event
 1124357400,17,0,
-1124357400,16,1,Is an anomaly if many people are entering at the end of an event
+1124357400,16,1,Is an anomaly if many people are entering near the end of an event
 1124359200,38,0,
-1124359200,34,1,Is an anomaly if many people are entering at the end of an event
+1124359200,34,1,Is an anomaly if many people are entering near the end of an event
 1124361000,23,0,
-1124361000,34,1,Is an anomaly if many people are entering at the end of an event
+1124361000,34,1,Is an anomaly if many people are entering near the end of an event
 1124362800,21,0,
-1124362800,39,1,Is an anomaly if many people are entering at the end of an event
+1124362800,39,1,Is an anomaly if many people are entering near the end of an event
 1124364600,14,0,
-1124364600,40,1,Is an anomaly if many people are entering at the end of an event
+1124364600,40,1,Is an anomaly if many people are entering near the end of an event
 1124366400,25,0,
-1124366400,20,1,Is an anomaly if many people are entering at the end of an event
+1124366400,20,1,Is an anomaly if many people are entering near the end of an event
 1124368200,14,0,
-1124368200,21,1,Is an anomaly if many people are entering at the end of an event
+1124368200,21,1,Is an anomaly if many people are entering near the end of an event
 1124370000,8,0,
-1124370000,16,1,Is an anomaly if many people are entering at the end of an event
+1124370000,16,1,Is an anomaly if many people are entering near the end of an event
 1124371800,39,0,
-1124371800,22,1,Is an anomaly if many people are entering at the end of an event
+1124371800,22,1,Is an anomaly if many people are entering near the end of an event
 1124373600,23,0,
-1124373600,13,1,Is an anomaly if many people are entering at the end of an event
+1124373600,13,1,Is an anomaly if many people are entering near the end of an event
 1124375400,36,0,
-1124375400,12,1,Is an anomaly if many people are entering at the end of an event
+1124375400,12,1,Is an anomaly if many people are entering near the end of an event
 1124377200,38,0,
-1124377200,26,1,Is an anomaly if many people are entering at the end of an event
-1124379000,5,1,Is an anomaly if many people are exiting at the start of an event
+1124377200,26,1,Is an anomaly if many people are entering near the end of an event
+1124379000,5,1,Is an anomaly if many people are exiting near the start of an event
 1124379000,12,0,
 1124380800,12,0,
-1124380800,26,1,Is an anomaly if many people are entering at the end of an event
+1124380800,26,1,Is an anomaly if many people are entering near the end of an event
 1124382600,8,0,
 1124382600,3,0,
 1124384400,12,0,
 1124384400,3,0,
 1124386200,16,0,
-1124386200,10,1,Is an anomaly if many people are entering at the end of an event
+1124386200,10,1,Is an anomaly if many people are entering near the end of an event
 1124388000,11,0,
 1124388000,3,0,
 1124389800,12,0,
@@ -2530,19 +2530,19 @@ timestamp,value,label,reason
 1124431200,0,0,
 1124431200,3,0,
 1124433000,6,0,
-1124433000,11,1,Is an anomaly if many people are entering at the end of an event
+1124433000,11,1,Is an anomaly if many people are entering near the end of an event
 1124434800,4,0,
-1124434800,18,1,Is an anomaly if many people are entering at the end of an event
+1124434800,18,1,Is an anomaly if many people are entering near the end of an event
 1124436600,20,0,
-1124436600,25,1,Is an anomaly if many people are entering at the end of an event
+1124436600,25,1,Is an anomaly if many people are entering near the end of an event
 1124438400,18,0,
-1124438400,36,1,Is an anomaly if many people are entering at the end of an event
+1124438400,36,1,Is an anomaly if many people are entering near the end of an event
 1124440200,13,0,
-1124440200,13,1,Is an anomaly if many people are entering at the end of an event
+1124440200,13,1,Is an anomaly if many people are entering near the end of an event
 1124442000,4,0,
-1124442000,9,1,Is an anomaly if many people are entering at the end of an event
+1124442000,9,1,Is an anomaly if many people are entering near the end of an event
 1124443800,23,0,
-1124443800,8,1,Is an anomaly if many people are entering at the end of an event
+1124443800,8,1,Is an anomaly if many people are entering near the end of an event
 1124445600,13,1,Is an anomaly if many people are exiting when there is no event
 1124445600,12,1,Is an anomaly if many people are entering when there is no event
 1124447400,5,1,Is an anomaly if many people are exiting when there is no event
@@ -2921,24 +2921,24 @@ timestamp,value,label,reason
 1124782200,9,1,Is an anomaly if many people are entering when there is no event
 1124784000,2,0,
 1124784000,12,1,Is an anomaly if many people are entering when there is no event
-1124785800,9,1,Is an anomaly if many people are exiting at the start of an event
+1124785800,9,1,Is an anomaly if many people are exiting near the start of an event
 1124785800,20,0,
 1124787600,9,0,
-1124787600,15,1,Is an anomaly if many people are entering at the end of an event
+1124787600,15,1,Is an anomaly if many people are entering near the end of an event
 1124789400,12,0,
-1124789400,34,1,Is an anomaly if many people are entering at the end of an event
+1124789400,34,1,Is an anomaly if many people are entering near the end of an event
 1124791200,13,0,
-1124791200,14,1,Is an anomaly if many people are entering at the end of an event
+1124791200,14,1,Is an anomaly if many people are entering near the end of an event
 1124793000,9,0,
-1124793000,12,1,Is an anomaly if many people are entering at the end of an event
+1124793000,12,1,Is an anomaly if many people are entering near the end of an event
 1124794800,25,0,
-1124794800,18,1,Is an anomaly if many people are entering at the end of an event
+1124794800,18,1,Is an anomaly if many people are entering near the end of an event
 1124796600,17,0,
-1124796600,21,1,Is an anomaly if many people are entering at the end of an event
+1124796600,21,1,Is an anomaly if many people are entering near the end of an event
 1124798400,15,0,
-1124798400,7,1,Is an anomaly if many people are entering at the end of an event
+1124798400,7,1,Is an anomaly if many people are entering near the end of an event
 1124800200,4,0,
-1124800200,13,1,Is an anomaly if many people are entering at the end of an event
+1124800200,13,1,Is an anomaly if many people are entering near the end of an event
 1124802000,14,1,Is an anomaly if many people are exiting when there is no event
 1124802000,18,1,Is an anomaly if many people are entering when there is no event
 1124803800,9,1,Is an anomaly if many people are exiting when there is no event
@@ -3197,24 +3197,24 @@ timestamp,value,label,reason
 1125030600,5,1,Is an anomaly if many people are entering when there is no event
 1125032400,10,1,Is an anomaly if many people are exiting when there is no event
 1125032400,11,1,Is an anomaly if many people are entering when there is no event
-1125034200,11,1,Is an anomaly if many people are exiting at the start of an event
+1125034200,11,1,Is an anomaly if many people are exiting near the start of an event
 1125034200,11,0,
 1125036000,9,0,
-1125036000,11,1,Is an anomaly if many people are entering at the end of an event
+1125036000,11,1,Is an anomaly if many people are entering near the end of an event
 1125037800,5,0,
-1125037800,10,1,Is an anomaly if many people are entering at the end of an event
+1125037800,10,1,Is an anomaly if many people are entering near the end of an event
 1125039600,2,0,
-1125039600,20,1,Is an anomaly if many people are entering at the end of an event
+1125039600,20,1,Is an anomaly if many people are entering near the end of an event
 1125041400,10,0,
-1125041400,23,1,Is an anomaly if many people are entering at the end of an event
+1125041400,23,1,Is an anomaly if many people are entering near the end of an event
 1125043200,18,0,
-1125043200,13,1,Is an anomaly if many people are entering at the end of an event
+1125043200,13,1,Is an anomaly if many people are entering near the end of an event
 1125045000,7,0,
-1125045000,5,1,Is an anomaly if many people are entering at the end of an event
+1125045000,5,1,Is an anomaly if many people are entering near the end of an event
 1125046800,8,0,
-1125046800,6,1,Is an anomaly if many people are entering at the end of an event
+1125046800,6,1,Is an anomaly if many people are entering near the end of an event
 1125048600,7,0,
-1125048600,10,1,Is an anomaly if many people are entering at the end of an event
+1125048600,10,1,Is an anomaly if many people are entering near the end of an event
 1125050400,14,1,Is an anomaly if many people are exiting when there is no event
 1125050400,14,1,Is an anomaly if many people are entering when there is no event
 1125052200,22,1,Is an anomaly if many people are exiting when there is no event
@@ -3613,14 +3613,14 @@ timestamp,value,label,reason
 1125405000,28,1,Is an anomaly if many people are entering when there is no event
 1125406800,16,1,Is an anomaly if many people are exiting when there is no event
 1125406800,16,1,Is an anomaly if many people are entering when there is no event
-1125408600,18,1,Is an anomaly if many people are exiting at the start of an event
+1125408600,18,1,Is an anomaly if many people are exiting near the start of an event
 1125408600,50,0,
 1125410400,14,0,
-1125410400,5,1,Is an anomaly if many people are entering at the end of an event
+1125410400,5,1,Is an anomaly if many people are entering near the end of an event
 1125412200,28,0,
-1125412200,10,1,Is an anomaly if many people are entering at the end of an event
+1125412200,10,1,Is an anomaly if many people are entering near the end of an event
 1125414000,47,0,
-1125414000,23,1,Is an anomaly if many people are entering at the end of an event
+1125414000,23,1,Is an anomaly if many people are entering near the end of an event
 1125415800,13,0,
 1125415800,4,0,
 1125417600,9,0,
@@ -3797,22 +3797,22 @@ timestamp,value,label,reason
 1125570600,6,1,Is an anomaly if many people are entering when there is no event
 1125572400,14,1,Is an anomaly if many people are exiting when there is no event
 1125572400,21,1,Is an anomaly if many people are entering when there is no event
-1125574200,13,1,Is an anomaly if many people are exiting at the start of an event
+1125574200,13,1,Is an anomaly if many people are exiting near the start of an event
 1125574200,22,0,
 1125576000,14,0,
-1125576000,36,1,Is an anomaly if many people are entering at the end of an event
+1125576000,36,1,Is an anomaly if many people are entering near the end of an event
 1125577800,29,0,
-1125577800,32,1,Is an anomaly if many people are entering at the end of an event
+1125577800,32,1,Is an anomaly if many people are entering near the end of an event
 1125579600,17,0,
-1125579600,37,1,Is an anomaly if many people are entering at the end of an event
+1125579600,37,1,Is an anomaly if many people are entering near the end of an event
 1125581400,21,0,
-1125581400,18,1,Is an anomaly if many people are entering at the end of an event
+1125581400,18,1,Is an anomaly if many people are entering near the end of an event
 1125583200,26,0,
-1125583200,22,1,Is an anomaly if many people are entering at the end of an event
+1125583200,22,1,Is an anomaly if many people are entering near the end of an event
 1125585000,16,0,
-1125585000,9,1,Is an anomaly if many people are entering at the end of an event
+1125585000,9,1,Is an anomaly if many people are entering near the end of an event
 1125586800,33,0,
-1125586800,10,1,Is an anomaly if many people are entering at the end of an event
+1125586800,10,1,Is an anomaly if many people are entering near the end of an event
 1125588600,15,1,Is an anomaly if many people are exiting when there is no event
 1125588600,8,1,Is an anomaly if many people are entering when there is no event
 1125590400,26,1,Is an anomaly if many people are exiting when there is no event
@@ -5122,15 +5122,15 @@ timestamp,value,label,reason
 1126764000,2,0,
 1126764000,5,0,
 1126765800,2,0,
-1126765800,12,1,Is an anomaly if many people are entering at the end of an event
+1126765800,12,1,Is an anomaly if many people are entering near the end of an event
 1126767600,0,0,
-1126767600,7,1,Is an anomaly if many people are entering at the end of an event
+1126767600,7,1,Is an anomaly if many people are entering near the end of an event
 1126769400,2,0,
-1126769400,7,1,Is an anomaly if many people are entering at the end of an event
+1126769400,7,1,Is an anomaly if many people are entering near the end of an event
 1126771200,14,0,
-1126771200,11,1,Is an anomaly if many people are entering at the end of an event
+1126771200,11,1,Is an anomaly if many people are entering near the end of an event
 1126773000,14,0,
-1126773000,12,1,Is an anomaly if many people are entering at the end of an event
+1126773000,12,1,Is an anomaly if many people are entering near the end of an event
 1126774800,8,1,Is an anomaly if many people are exiting when there is no event
 1126774800,10,1,Is an anomaly if many people are entering when there is no event
 1126776600,10,1,Is an anomaly if many people are exiting when there is no event
@@ -5697,32 +5697,32 @@ timestamp,value,label,reason
 1127280600,4,0,
 1127282400,1,0,
 1127282400,2,0,
-1127284200,5,1,Is an anomaly if many people are exiting at the start of an event
+1127284200,5,1,Is an anomaly if many people are exiting near the start of an event
 1127284200,18,0,
 1127286000,11,0,
-1127286000,29,1,Is an anomaly if many people are entering at the end of an event
+1127286000,29,1,Is an anomaly if many people are entering near the end of an event
 1127287800,8,0,
-1127287800,13,1,Is an anomaly if many people are entering at the end of an event
+1127287800,13,1,Is an anomaly if many people are entering near the end of an event
 1127289600,18,0,
-1127289600,14,1,Is an anomaly if many people are entering at the end of an event
+1127289600,14,1,Is an anomaly if many people are entering near the end of an event
 1127291400,7,0,
-1127291400,32,1,Is an anomaly if many people are entering at the end of an event
+1127291400,32,1,Is an anomaly if many people are entering near the end of an event
 1127293200,14,0,
-1127293200,11,1,Is an anomaly if many people are entering at the end of an event
+1127293200,11,1,Is an anomaly if many people are entering near the end of an event
 1127295000,19,0,
-1127295000,17,1,Is an anomaly if many people are entering at the end of an event
+1127295000,17,1,Is an anomaly if many people are entering near the end of an event
 1127296800,25,0,
-1127296800,19,1,Is an anomaly if many people are entering at the end of an event
+1127296800,19,1,Is an anomaly if many people are entering near the end of an event
 1127298600,28,0,
-1127298600,12,1,Is an anomaly if many people are entering at the end of an event
+1127298600,12,1,Is an anomaly if many people are entering near the end of an event
 1127300400,35,0,
-1127300400,26,1,Is an anomaly if many people are entering at the end of an event
+1127300400,26,1,Is an anomaly if many people are entering near the end of an event
 1127302200,19,0,
-1127302200,21,1,Is an anomaly if many people are entering at the end of an event
+1127302200,21,1,Is an anomaly if many people are entering near the end of an event
 1127304000,10,0,
-1127304000,26,1,Is an anomaly if many people are entering at the end of an event
+1127304000,26,1,Is an anomaly if many people are entering near the end of an event
 1127305800,13,0,
-1127305800,16,1,Is an anomaly if many people are entering at the end of an event
+1127305800,16,1,Is an anomaly if many people are entering near the end of an event
 1127307600,12,1,Is an anomaly if many people are exiting when there is no event
 1127307600,16,1,Is an anomaly if many people are entering when there is no event
 1127309400,14,1,Is an anomaly if many people are exiting when there is no event
@@ -5813,12 +5813,12 @@ timestamp,value,label,reason
 1127385000,10,1,Is an anomaly if many people are entering when there is no event
 1127386800,8,1,Is an anomaly if many people are exiting when there is no event
 1127386800,28,1,Is an anomaly if many people are entering when there is no event
-1127388600,8,1,Is an anomaly if many people are exiting at the start of an event
+1127388600,8,1,Is an anomaly if many people are exiting near the start of an event
 1127388600,16,0,
 1127390400,15,0,
-1127390400,42,1,Is an anomaly if many people are entering at the end of an event
+1127390400,42,1,Is an anomaly if many people are entering near the end of an event
 1127392200,12,0,
-1127392200,24,1,Is an anomaly if many people are entering at the end of an event
+1127392200,24,1,Is an anomaly if many people are entering near the end of an event
 1127394000,4,0,
 1127394000,3,0,
 1127395800,7,1,Is an anomaly if many people are exiting when there is no event
@@ -6875,18 +6875,18 @@ timestamp,value,label,reason
 1128340800,15,1,Is an anomaly if many people are entering when there is no event
 1128342600,14,1,Is an anomaly if many people are exiting when there is no event
 1128342600,19,1,Is an anomaly if many people are entering when there is no event
-1128344400,15,1,Is an anomaly if many people are exiting at the start of an event
+1128344400,15,1,Is an anomaly if many people are exiting near the start of an event
 1128344400,23,0,
 1128346200,52,0,
-1128346200,62,1,Is an anomaly if many people are entering at the end of an event
+1128346200,62,1,Is an anomaly if many people are entering near the end of an event
 1128348000,49,0,
-1128348000,55,1,Is an anomaly if many people are entering at the end of an event
+1128348000,55,1,Is an anomaly if many people are entering near the end of an event
 1128349800,20,0,
-1128349800,13,1,Is an anomaly if many people are entering at the end of an event
+1128349800,13,1,Is an anomaly if many people are entering near the end of an event
 1128351600,16,0,
-1128351600,8,1,Is an anomaly if many people are entering at the end of an event
+1128351600,8,1,Is an anomaly if many people are entering near the end of an event
 1128353400,23,0,
-1128353400,6,1,Is an anomaly if many people are entering at the end of an event
+1128353400,6,1,Is an anomaly if many people are entering near the end of an event
 1128355200,8,1,Is an anomaly if many people are exiting when there is no event
 1128355200,3,0,
 1128357000,4,0,
@@ -6957,24 +6957,24 @@ timestamp,value,label,reason
 1128414600,16,1,Is an anomaly if many people are entering when there is no event
 1128416400,17,1,Is an anomaly if many people are exiting when there is no event
 1128416400,22,1,Is an anomaly if many people are entering when there is no event
-1128418200,24,1,Is an anomaly if many people are exiting at the start of an event
+1128418200,24,1,Is an anomaly if many people are exiting near the start of an event
 1128418200,14,0,
 1128420000,14,0,
-1128420000,36,1,Is an anomaly if many people are entering at the end of an event
+1128420000,36,1,Is an anomaly if many people are entering near the end of an event
 1128421800,16,0,
-1128421800,29,1,Is an anomaly if many people are entering at the end of an event
+1128421800,29,1,Is an anomaly if many people are entering near the end of an event
 1128423600,11,0,
-1128423600,29,1,Is an anomaly if many people are entering at the end of an event
+1128423600,29,1,Is an anomaly if many people are entering near the end of an event
 1128425400,34,0,
-1128425400,23,1,Is an anomaly if many people are entering at the end of an event
+1128425400,23,1,Is an anomaly if many people are entering near the end of an event
 1128427200,30,0,
-1128427200,19,1,Is an anomaly if many people are entering at the end of an event
+1128427200,19,1,Is an anomaly if many people are entering near the end of an event
 1128429000,10,0,
-1128429000,16,1,Is an anomaly if many people are entering at the end of an event
+1128429000,16,1,Is an anomaly if many people are entering near the end of an event
 1128430800,15,0,
-1128430800,18,1,Is an anomaly if many people are entering at the end of an event
+1128430800,18,1,Is an anomaly if many people are entering near the end of an event
 1128432600,20,0,
-1128432600,20,1,Is an anomaly if many people are entering at the end of an event
+1128432600,20,1,Is an anomaly if many people are entering near the end of an event
 1128434400,12,1,Is an anomaly if many people are exiting when there is no event
 1128434400,10,1,Is an anomaly if many people are entering when there is no event
 1128436200,10,1,Is an anomaly if many people are exiting when there is no event
@@ -7233,18 +7233,18 @@ timestamp,value,label,reason
 1128663000,1,0,
 1128664800,12,1,Is an anomaly if many people are exiting when there is no event
 1128664800,11,1,Is an anomaly if many people are entering when there is no event
-1128666600,5,1,Is an anomaly if many people are exiting at the start of an event
+1128666600,5,1,Is an anomaly if many people are exiting near the start of an event
 1128666600,6,0,
 1128668400,7,0,
-1128668400,25,1,Is an anomaly if many people are entering at the end of an event
+1128668400,25,1,Is an anomaly if many people are entering near the end of an event
 1128670200,9,0,
-1128670200,23,1,Is an anomaly if many people are entering at the end of an event
+1128670200,23,1,Is an anomaly if many people are entering near the end of an event
 1128672000,24,0,
-1128672000,25,1,Is an anomaly if many people are entering at the end of an event
+1128672000,25,1,Is an anomaly if many people are entering near the end of an event
 1128673800,11,0,
-1128673800,18,1,Is an anomaly if many people are entering at the end of an event
+1128673800,18,1,Is an anomaly if many people are entering near the end of an event
 1128675600,20,0,
-1128675600,14,1,Is an anomaly if many people are entering at the end of an event
+1128675600,14,1,Is an anomaly if many people are entering near the end of an event
 1128677400,11,1,Is an anomaly if many people are exiting when there is no event
 1128677400,18,1,Is an anomaly if many people are entering when there is no event
 1128679200,22,1,Is an anomaly if many people are exiting when there is no event
@@ -7551,14 +7551,14 @@ timestamp,value,label,reason
 1128949200,24,1,Is an anomaly if many people are entering when there is no event
 1128951000,12,1,Is an anomaly if many people are exiting when there is no event
 1128951000,13,1,Is an anomaly if many people are entering when there is no event
-1128952800,17,1,Is an anomaly if many people are exiting at the start of an event
+1128952800,17,1,Is an anomaly if many people are exiting near the start of an event
 1128952800,15,0,
 1128954600,23,0,
-1128954600,27,1,Is an anomaly if many people are entering at the end of an event
+1128954600,27,1,Is an anomaly if many people are entering near the end of an event
 1128956400,19,0,
-1128956400,25,1,Is an anomaly if many people are entering at the end of an event
+1128956400,25,1,Is an anomaly if many people are entering near the end of an event
 1128958200,14,0,
-1128958200,6,1,Is an anomaly if many people are entering at the end of an event
+1128958200,6,1,Is an anomaly if many people are entering near the end of an event
 1128960000,16,0,
 1128960000,3,0,
 1128961800,8,0,
@@ -7908,15 +7908,15 @@ timestamp,value,label,reason
 1129271400,2,0,
 1129271400,6,0,
 1129273200,13,0,
-1129273200,29,1,Is an anomaly if many people are entering at the end of an event
+1129273200,29,1,Is an anomaly if many people are entering near the end of an event
 1129275000,19,0,
-1129275000,28,1,Is an anomaly if many people are entering at the end of an event
+1129275000,28,1,Is an anomaly if many people are entering near the end of an event
 1129276800,19,0,
-1129276800,16,1,Is an anomaly if many people are entering at the end of an event
+1129276800,16,1,Is an anomaly if many people are entering near the end of an event
 1129278600,3,0,
-1129278600,16,1,Is an anomaly if many people are entering at the end of an event
+1129278600,16,1,Is an anomaly if many people are entering near the end of an event
 1129280400,15,0,
-1129280400,31,1,Is an anomaly if many people are entering at the end of an event
+1129280400,31,1,Is an anomaly if many people are entering near the end of an event
 1129282200,25,1,Is an anomaly if many people are exiting when there is no event
 1129282200,12,1,Is an anomaly if many people are entering when there is no event
 1129284000,21,1,Is an anomaly if many people are exiting when there is no event
@@ -8442,9 +8442,9 @@ timestamp,value,label,reason
 1129752000,7,0,
 1129752000,1,0,
 1129753800,17,0,
-1129753800,14,1,Is an anomaly if many people are entering at the end of an event
+1129753800,14,1,Is an anomaly if many people are entering near the end of an event
 1129755600,6,0,
-1129755600,6,1,Is an anomaly if many people are entering at the end of an event
+1129755600,6,1,Is an anomaly if many people are entering near the end of an event
 1129757400,1,0,
 1129757400,0,0,
 1129759200,0,0,
@@ -8580,15 +8580,15 @@ timestamp,value,label,reason
 1129876200,4,0,
 1129876200,9,0,
 1129878000,5,0,
-1129878000,18,1,Is an anomaly if many people are entering at the end of an event
+1129878000,18,1,Is an anomaly if many people are entering near the end of an event
 1129879800,10,0,
-1129879800,21,1,Is an anomaly if many people are entering at the end of an event
+1129879800,21,1,Is an anomaly if many people are entering near the end of an event
 1129881600,20,0,
-1129881600,29,1,Is an anomaly if many people are entering at the end of an event
+1129881600,29,1,Is an anomaly if many people are entering near the end of an event
 1129883400,10,0,
-1129883400,16,1,Is an anomaly if many people are entering at the end of an event
+1129883400,16,1,Is an anomaly if many people are entering near the end of an event
 1129885200,12,0,
-1129885200,25,1,Is an anomaly if many people are entering at the end of an event
+1129885200,25,1,Is an anomaly if many people are entering near the end of an event
 1129887000,12,1,Is an anomaly if many people are exiting when there is no event
 1129887000,18,1,Is an anomaly if many people are entering when there is no event
 1129888800,22,1,Is an anomaly if many people are exiting when there is no event
@@ -8820,11 +8820,11 @@ timestamp,value,label,reason
 1130092200,1,0,
 1130092200,2,0,
 1130094000,18,0,
-1130094000,19,1,Is an anomaly if many people are entering at the end of an event
+1130094000,19,1,Is an anomaly if many people are entering near the end of an event
 1130095800,0,0,
 1130095800,0,0,
 1130097600,12,0,
-1130097600,5,1,Is an anomaly if many people are entering at the end of an event
+1130097600,5,1,Is an anomaly if many people are entering near the end of an event
 1130099400,0,0,
 1130099400,0,0,
 1130101200,1,0,
@@ -8864,25 +8864,25 @@ timestamp,value,label,reason
 1130131800,0,0,
 1130131800,2,0,
 1130133600,1,0,
-1130133600,5,1,Is an anomaly if many people are entering at the end of an event
+1130133600,5,1,Is an anomaly if many people are entering near the end of an event
 1130135400,4,0,
-1130135400,13,1,Is an anomaly if many people are entering at the end of an event
+1130135400,13,1,Is an anomaly if many people are entering near the end of an event
 1130137200,1,0,
-1130137200,7,1,Is an anomaly if many people are entering at the end of an event
+1130137200,7,1,Is an anomaly if many people are entering near the end of an event
 1130139000,1,0,
-1130139000,7,1,Is an anomaly if many people are entering at the end of an event
+1130139000,7,1,Is an anomaly if many people are entering near the end of an event
 1130140800,6,0,
-1130140800,13,1,Is an anomaly if many people are entering at the end of an event
+1130140800,13,1,Is an anomaly if many people are entering near the end of an event
 1130142600,9,0,
-1130142600,12,1,Is an anomaly if many people are entering at the end of an event
+1130142600,12,1,Is an anomaly if many people are entering near the end of an event
 1130144400,12,0,
-1130144400,21,1,Is an anomaly if many people are entering at the end of an event
+1130144400,21,1,Is an anomaly if many people are entering near the end of an event
 1130146200,12,0,
-1130146200,12,1,Is an anomaly if many people are entering at the end of an event
+1130146200,12,1,Is an anomaly if many people are entering near the end of an event
 1130148000,19,0,
-1130148000,11,1,Is an anomaly if many people are entering at the end of an event
+1130148000,11,1,Is an anomaly if many people are entering near the end of an event
 1130149800,15,0,
-1130149800,19,1,Is an anomaly if many people are entering at the end of an event
+1130149800,19,1,Is an anomaly if many people are entering near the end of an event
 1130151600,17,1,Is an anomaly if many people are exiting when there is no event
 1130151600,25,1,Is an anomaly if many people are entering when there is no event
 1130153400,11,1,Is an anomaly if many people are exiting when there is no event
@@ -8893,28 +8893,28 @@ timestamp,value,label,reason
 1130157000,20,1,Is an anomaly if many people are entering when there is no event
 1130158800,12,1,Is an anomaly if many people are exiting when there is no event
 1130158800,12,1,Is an anomaly if many people are entering when there is no event
-1130160600,13,1,Is an anomaly if many people are exiting at the start of an event
+1130160600,13,1,Is an anomaly if many people are exiting near the start of an event
 1130160600,14,0,
 1130162400,12,0,
-1130162400,7,1,Is an anomaly if many people are entering at the end of an event
+1130162400,7,1,Is an anomaly if many people are entering near the end of an event
 1130164200,21,0,
-1130164200,7,1,Is an anomaly if many people are entering at the end of an event
+1130164200,7,1,Is an anomaly if many people are entering near the end of an event
 1130166000,14,0,
-1130166000,12,1,Is an anomaly if many people are entering at the end of an event
+1130166000,12,1,Is an anomaly if many people are entering near the end of an event
 1130167800,20,0,
-1130167800,23,1,Is an anomaly if many people are entering at the end of an event
+1130167800,23,1,Is an anomaly if many people are entering near the end of an event
 1130169600,27,0,
-1130169600,24,1,Is an anomaly if many people are entering at the end of an event
+1130169600,24,1,Is an anomaly if many people are entering near the end of an event
 1130171400,15,0,
-1130171400,23,1,Is an anomaly if many people are entering at the end of an event
+1130171400,23,1,Is an anomaly if many people are entering near the end of an event
 1130173200,43,0,
-1130173200,24,1,Is an anomaly if many people are entering at the end of an event
+1130173200,24,1,Is an anomaly if many people are entering near the end of an event
 1130175000,20,0,
-1130175000,10,1,Is an anomaly if many people are entering at the end of an event
+1130175000,10,1,Is an anomaly if many people are entering near the end of an event
 1130176800,12,0,
-1130176800,50,1,Is an anomaly if many people are entering at the end of an event
+1130176800,50,1,Is an anomaly if many people are entering near the end of an event
 1130178600,27,0,
-1130178600,12,1,Is an anomaly if many people are entering at the end of an event
+1130178600,12,1,Is an anomaly if many people are entering near the end of an event
 1130180400,18,0,
 1130180400,2,0,
 1130182200,36,0,

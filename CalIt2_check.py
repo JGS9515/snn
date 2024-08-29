@@ -27,8 +27,8 @@ CalIt2_transform_event_time_windows_to_timestamp()
     #Ejemplo: En el caso de utilizar 4, solamente entrará en consideración valores por encima de 4, el resto se considera no anómalo por lo que el label será 0.
 #Segundo argumento es para añadir una columna 'rason' al DataFrame, si es false no se añadirá. El objetivo de añadir esta columna es para verificar El motivo por el que es considerado anomalía.
     #Posibles valores en la columna 'reason':
-        # - 'Is an anomaly if many people are exiting at the start of an event'
-        # - 'Is an anomaly if many people are entering at the end of an event'
+        # - 'Is an anomaly if many people are exiting near the start of an event'
+        # - 'Is an anomaly if many people are entering near the end of an event'
         # - 'Is an anomaly if many people are exiting when there is no event'
         # - 'Is an anomaly if many people are entering when there is no event'
 CalIt2_fill_label_field(4,True) 

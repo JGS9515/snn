@@ -47,9 +47,9 @@ def CalIt2_fill_label_field(personsCount, reasonOfAnomaly):
                     # Even row: people are exiting
                     if is_near_the_start(timestamp, ranges):
                         df1['label'] = df1['label'].fillna(0).astype(int)
-                        df1.at[index, 'label'] = 1  # Is an anomaly if many people are exiting at the start of an event
+                        df1.at[index, 'label'] = 1  # Is an anomaly if many people are exiting near the start of an event
                         if reasonOfAnomaly:
-                            df1.at[index, 'reason'] = 'Is an anomaly if many people are exiting at the start of an event'
+                            df1.at[index, 'reason'] = 'Is an anomaly if many people are exiting near the start of an event'
                     else:
                         # Even row: people are exiting
                         df1['label'] = df1['label'].fillna(0).astype(int)
@@ -62,9 +62,9 @@ def CalIt2_fill_label_field(personsCount, reasonOfAnomaly):
                     else:
                         # Odd row: people are entering
                         df1['label'] = df1['label'].fillna(0).astype(int)
-                        df1.at[index, 'label'] = 1 # Is an anomaly if many people are entering at the end of an event
+                        df1.at[index, 'label'] = 1 # Is an anomaly if many people are entering near the end of an event
                         if reasonOfAnomaly:
-                            df1.at[index, 'reason'] = 'Is an anomaly if many people are entering at the end of an event'
+                            df1.at[index, 'reason'] = 'Is an anomaly if many people are entering near the end of an event'
             else:
                 if is_even_row:
                     # Even row: people are exiting
