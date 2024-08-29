@@ -78,7 +78,7 @@ El script depende de los siguientes módulos:
 
 ## CalIt2_fill_label_field
 
--  Este módulo clasifica las filas del DataFrame df1 como anomalías o no, basándose en el número de personas, si están entrando o saliendo, y si el evento está ocurriendo o no.
+-  Este módulo clasifica las filas del DataFrame df1 como anomalías o no, basándose en el número de personas, si están entrando o saliendo, y si el evento está ocurriendo o no. **A partir de 15 minutos o menos es considerado cerca del inicio o del fin de un evento**
 - Contamos con el parámetro **personsCount** para establecer cuando analizar si es necesario analizar si es anomalía. 
   - Ejemplo: En el caso de utilizar 4, solamente entrará en consideración valores por encima de 4, el resto se considera no anómalo por lo que el label será 0.
 - Para decidir si es un campo anómalo se tiene en cuenta
@@ -87,8 +87,6 @@ El script depende de los siguientes módulos:
   - 'Is an anomaly if many people are entering near the end of an event'
   - 'Is an anomaly if many people are exiting when there is no event'
   - 'Is an anomaly if many people are entering when there is no event'
-**A partir de 15 minutos o menos es considerado cerca del inicio o del fin de un evento**
-
   - El resultado del último paso (en caso de utilizar la configuración de **reasonOfAnomaly** en True). De esta forma es sencillo verificar cuantas tuplas son anómalas después del preprocesamiento. En el ejemplo a continuación se puede observar que se hay 2500 tuplas anómalas: 
 
 ![imagen](CalIt2_train_label_filled.png)
