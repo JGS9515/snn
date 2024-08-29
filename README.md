@@ -1,4 +1,4 @@
-# snn
+# iops
 
 Objetivo del preporcesamiento:
 Crear un fichero por cada KPI distinto que cumplan con las siguientes condiciones:
@@ -20,7 +20,6 @@ iops_check.py es el archivo principal para ejecutar el script de preprocesamient
 
 Este script realiza varias operaciones relacionadas con la verificación y procesamiento de KPI (Key Performance Indicators) en un conjunto de datos. Las principales funciones incluyen la verificación de la existencia de archivos KPI, la creación de nuevos conjuntos de datos para cada KPI y el llenado de timestamps faltantes.
 
-
 ## Dependencias
 
 El script depende de los siguientes módulos:
@@ -40,3 +39,60 @@ Para ejecutar el script, simplemente corre el archivo `iops_check.py` en tu ento
 
 ```bash
 python iops_check.py
+```
+
+# CalIt2
+
+Objetivo del preporcesamiento:
+Crear un fichero que cumpla con las siguientes condiciones:
+
+- Propiedades: timestamp, value, label
+
+- Las tuplas deben estar organizadas de menor a mayor por la propiedad timestamp
+
+- Transformar cada date a timestamp, verificar que cada timestamp se repita 2 veces ya que hay 2 data streams (uno de personas entrando y otro de personas saliendo).
+
+- Verificar si el rango de diferencia entre cada tupla es regular de 1800 (30 minutos), en caso de no serlo añadir las tuplas necesarias con value 0 y label 0.
+
+- Transformar cada evento a timestamp.
+
+- Llenar el atributo label con 0 si no es anomalía y 1 en caso de ser anomalía.
+  
+# CalIt2_check.py
+
+CalIt2_check.py es el archivo principal para ejecutar el script de preprocesamiento de CalIt2.
+
+## Descripción
+
+Este script realiza varias operaciones relacionadas con la verificación y procesamiento de KPI (Key Performance Indicators) en un conjunto de datos. Las principales funciones incluyen la verificación de la existencia de archivos KPI, la creación de nuevos conjuntos de datos para cada KPI y el llenado de timestamps faltantes.
+
+## Dependencias
+
+El script depende de los siguientes módulos:
+
+- `CalIt2_transform_date_to_timestamp`
+- `CalIt2_check_every_row_is_repeated_2_times`
+- `CalIt2_fill_missing_timestamps`
+- `CalIt2_transform_event_time_windows_to_timestamp`
+- `CalIt2_fill_label_field`
+
+## CalIt2_fill_label_field
+
+- Contamos con el parámetro **personsCount** para establecer cuando analizar si es necesario analizar si es anomalía. 
+    - Ejemplo: En el caso de utilizar 4, solamente entrará en consideración valores por encima de 4, el resto se considera no anómalo por lo que el label será 0.
+  - El segundo parámetro es un booleano  **reasonOfAnomaly**, se utiliza para añadir un atributo llamado **reason** con los motivos de los casos anómalos. Los posibles valores son:
+    - 'Is an anomaly if many people are exiting at the start of an event'
+    - 'Is an anomaly if many people are entering at the end of an event'
+    - 'Is an anomaly if many people are exiting when there is no event'
+    - 'Is an anomaly if many people are entering when there is no event'
+
+  - El resultado del último paso (en caso de utilizar la configuración de **reasonOfAnomaly** en True). De esta forma es sencillo verificar cuantas tuplas son anómalas después del preprocesamiento. En el ejemplo a continuación se puede observar que se hay 2500 tuplas anómalas: 
+
+![imagen](CalIt2_train_label_filled.png)
+
+## Uso
+
+Para ejecutar el script, simplemente corre el archivo `CalIt2_check.py` en tu entorno de Python:
+
+```bash
+python CalIt2_check.py
