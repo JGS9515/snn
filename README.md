@@ -16,10 +16,6 @@ Crear un fichero por cada KPI distinto que cumplan con las siguientes condicione
 
 iops_check.py es el archivo principal para ejecutar el script de preprocesamiento.
 
-## Descripción
-
-Este script realiza varias operaciones relacionadas con la verificación y procesamiento de KPI (Key Performance Indicators) en un conjunto de datos. Las principales funciones incluyen la verificación de la existencia de archivos KPI, la creación de nuevos conjuntos de datos para cada KPI y el llenado de timestamps faltantes.
-
 ## Dependencias
 
 El script depende de los siguientes módulos:
