@@ -1,4 +1,6 @@
 import pandas as pd
+import os
+
 
 # Function to check if a timestamp is within any given range
 def is_within_range(timestamp, ranges):
@@ -17,10 +19,16 @@ def is_near_the_start(timestamp, ranges):
 
 def CalIt2_fill_label_field(personsCount, reasonOfAnomaly):
 
-    # Ruta del archivo a revisar
-    train_filled_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_filled.csv'
-    train_events_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_events.csv'
-    output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_label_filled.csv'
+    # Ruta del archivo a revisar LINUX
+    # train_filled_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_filled.csv'
+    # train_events_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_events.csv'
+    # output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_label_filled.csv'
+    
+    base_path = os.path.abspath(os.path.dirname(__file__))
+
+    train_filled_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_filled.csv')
+    train_events_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_events.csv')
+    output_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_label_filled.csv')
 
 
     # Read the first CSV file
