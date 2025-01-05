@@ -183,14 +183,14 @@ def crear_red(R,T,n,umbral,decaimiento,nu1,nu2,recurrencia,device):
         obj=source_layer,
         state_vars=("s",),  #Registramos sólo los spikes.
         time=T,
-        device=device,
+        # device=device, #No es necesario, ya que se registra en la CPU.
     )
     #Spikes de la capa recurrente (lo que nos interesa):
     target_monitor = Monitor(
         obj=target_layer,
         state_vars=("s", "v"),  #Registramos spikes y voltajes, por si nos interesa lo segundo también.
         time=T,
-        device=device,
+        # device=device, #No es necesario, ya que se registra en la CPU.
     )
     
     network.add_monitor(monitor=source_monitor, name="X")
@@ -228,10 +228,10 @@ def ejecutar_red(secuencias,network,source_monitor,target_monitor,T):
         
     
     #Concatenamos y devolvemos:
-    sp0=torch.concatenate(sp0)
+    sp0 = torch.cat(sp0)
     sp0=sp0.detach().cpu().numpy()
     
-    sp1=torch.concatenate(sp1)
+    sp1=torch.cat(sp1)
     sp1=sp1.detach().cpu().numpy()
     
     return [sp0,sp1,network]
