@@ -1,0 +1,3 @@
+venv
+*.pyc
+preprocesamiento/CalIt2/__pycache__
