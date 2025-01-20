@@ -92,3 +92,73 @@ Para ejecutar el script, simplemente corre el archivo `CalIt2_check.py` en tu en
 
 ```bash
 python CalIt2_check.py
+```
+
+# Experimento y resultados
+
+
+## Crear experimiento
+
+Para encontrar la configuración de experimento que mejor funciona para cada juego de datos, revisa el archivo `config.json`. En el encontrarás todos los experimientos realizados. Cada experimento tiene los siguientes argumentos:
+
+- **nu1** y **nu2**
+  - Descripción: Tasa de aprendizaje para eventos pre y postsinápticos. nu1 se usa en las conexiones entre las capas de entrada (A) y la recurrente (B). nu2 se usa en conexiónes de nodos dentro de la capa recurrente (B)
+  - Impacto al cambiar: Aumentar estos valores podría hacer que el modelo aprenda más rápido, pero también podría hacerlo más inestable. Disminuirlos podría hacer que el aprendizaje sea más lento pero más estable.
+
+- **snn_process_layer_neurons_size**
+  - Descripción: Número de neuronas en la capa de procesamiento red neuronal.
+  - Impacto al cambiar: Aumentar el número de neuronas puede mejorar la capacidad del modelo para aprender patrones complejos, pero también aumentará el tiempo de entrenamiento y el uso de memoria. Disminuirlo tendrá el efecto contrario.
+
+- **threshold**
+  - Descripción: Umbral para la activación de las neuronas.
+  - Impacto al cambiar: Un umbral más bajo puede hacer que las neuronas se activen más fácilmente, mientras que un umbral más alto puede hacer que se activen menos frecuentemente.
+
+- **decay**
+  - Descripción: Este parámetro controla la constante de tiempo de decaimiento del potencial de membrana de las neuronas LIF. Específicamente, determina la rapidez con la que el potencial de membrana decae con el tiempo cuando no hay entradas.
+  - Impacto al cambiar: Un valor de decaimiento más alto permite que la neurona acumule potencial durante un período más largo antes de disparar, mientras que un valor más bajo el potencial de membrana decae más rápidamente, lo que hace que la neurona necesite entradas más frecuentes para alcanzar el umbral de disparo.
+
+- **ampliacion**
+  - Descripción: Controla el rango de valores de los cuantiles generados.
+  - Impacto al cambiar: Un valor mayor de amp resultará en un rango más amplio de valores en los cuantiles, mientras que un valor menor de amp resultará en un rango más estrecho.
+
+- **resolucion**
+  - Descripción: Controla la cantidad de elementos de cada cuantil.
+  - Impacto al cambiar: Un valor mayor de resolucion resultará en un paso más grande, generando menos cuantiles. Un valor menor de resolucion resultará en un paso más pequeño, generando más cuantiles.
+
+- **path**
+  - Descripción: Ruta al archivo de datos que se utilizará para el entrenamiento.
+  - Impacto al cambiar: Cambiar esta ruta cambiará el conjunto de datos que se utiliza para entrenar el modelo.
+
+- **epochs**
+  - Descripción: Número de épocas de entrenamiento. Representan cada pasada completa sobre el conjunto de entrenamiento.
+  - Impacto al cambiar: 
+    - Valor menor: Si epochs es muy pequeño (p. ej. [1, 2]), solo se hará evaluación en esas primeras épocas y se perderán evaluaciones en etapas más avanzadas del entrenamiento.
+    - Valor mayor: Si epochs contiene valores mayores que el total de épocas entrenadas (p. ej. [100, 200] con un entrenamiento de 50 épocas), esas evaluaciones nunca se ejecutarán.
+
+- **recurrencia**
+  - Descripción: Determina si se crea una conexión recurrente en la capa “B” de la SNN.
+  - Impacto al cambiar: 
+    - True: Se añade una conexión recurrente (source="B", target="B") que permite realimentar su propia salida. Esto puede ayudar a la red a mantener información anterior y ser más dinámica en términos de respuestas.
+    - False: No se configura la conexión recurrente y la capa “B” opera únicamente con las entradas que recibe de la capa “A” (sin retroalimentación).
+
+
+
+
+## Ejecuta el experimento
+
+Ejecutar el archivo `ejecutar_experimentacion_final.py` utiliza el siguiente comando en tu entorno Python:
+
+```bash
+python ejecutar_experimentacion_final.py
+```
+## Dependencias
+
+El script `ejecutar_experimentacion_final.py` depende de los siguientes módulos:
+
+- `dependencias`
+
+## Mostrar los resultados
+
+- Abrir archivo `ver_spikes.R`
+- Actualizar ruta a los resultados del experimento que quieras visualizar
+- Ejecutar los comandos `Ctrl+Shift+S`
