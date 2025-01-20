@@ -134,14 +134,14 @@ def convertir_data(data,T,cuantiles,R,device,is_train=False):
     return secuencias
 
 
-def crear_red(R,T,n,umbral,decaimiento,nu1,nu2,recurrencia,device):
+def crear_red(snn_input_layer,T,snn_process_layer_neurons_size,threshold,decay,nu1,nu2,recurrencia,device):
     #Aquí creamos la red.
     
     network = Network()
     
     #Creamos las capas de entrada e interna:
-    source_layer = Input(n=R,traces=True)
-    target_layer = LIFNodes(n=n,traces=True,thresh=umbral, tc_decay=decaimiento)
+    source_layer = Input(n=snn_input_layer,traces=True)
+    target_layer = LIFNodes(n=snn_process_layer_neurons_size,traces=True,thresh=threshold, tc_decay=decay)
     
     network.add_layer(
         layer=source_layer, name="A"
@@ -211,13 +211,13 @@ def ejecutar_red(secuencias,network,source_monitor,target_monitor,T):
     j=1
     for i in secuencias:
         #Los datos de entrada serán una tupla con tensores de pytorch, pasamos cada una:
-        print(f'Ejecutando secuencia {j}')
+        # print(f'Ejecutando secuencia {j}')
         j+=1
         inputs={'A':i.T}#.to(device)
         inicio=datetime.now()
         network.run(inputs=inputs, time=T)
         final=datetime.now()
-        print(final-inicio)
+        # print(final-inicio)
         #Obtenemos los spikes a lo largo de la simulación:
         spikes = {
             "X": source_monitor.get("s"), "B": target_monitor.get("s")
