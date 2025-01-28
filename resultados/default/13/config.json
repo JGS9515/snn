@@ -1,0 +1,11 @@
+{
+    "nu1": "0.1",
+    "nu2": "0.1",
+    "neurons": 100,
+    "threshold": 0.5,
+    "decay": 0.9,
+    "amp": 0.1,
+    "epoch": 10,
+    "reso": 0.01,
+    "recurrencia": false
+}
