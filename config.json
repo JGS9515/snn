@@ -1,0 +1,38 @@
+{
+    "default": {
+        "nu1": "0.1",
+        "nu2": "0.1",
+        "snn_process_layer_neurons_size": 100,
+        "threshold": 0.5,
+        "decay": 0.9,
+        "ampliacion": 0.1,
+        "resolucion": 0.01,
+        "path": "Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv",
+        "epochs": "[10]",
+        "recurrencia": "False"
+    },
+    "experiment1": {
+        "nu1": "0.2",
+        "nu2": "0.2",
+        "snn_process_layer_neurons_size": 200,
+        "threshold": 0.6,
+        "decay": 0.8,
+        "ampliacion": 0.2,
+        "resolucion": 0.02,
+        "path": "Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv",
+        "epochs": "[20]",
+        "recurrencia": "True"
+    },
+    "2": {
+        "nu1": "0.2",
+        "nu2": "0.2",
+        "snn_process_layer_neurons_size": 200,
+        "threshold": 0.6,
+        "decay": 0.8,
+        "ampliacion": 0.2,
+        "resolucion": 0.02,
+        "path": "data/experiment1.csv",
+        "epochs": "[20]",
+        "recurrencia": "True"
+    }
+}
