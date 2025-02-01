@@ -31,4 +31,4 @@ CalIt2_transform_event_time_windows_to_timestamp()
         # - 'Is an anomaly if many people are entering near the end of an event'
         # - 'Is an anomaly if many people are exiting when there is no event'
         # - 'Is an anomaly if many people are entering when there is no event'
-CalIt2_fill_label_field(4,True) 
+CalIt2_fill_label_field(4,False) 
