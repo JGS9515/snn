@@ -323,14 +323,14 @@ secuencias2test=convertir_data(data_test,T,cuantiles,R)
 print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
 spikes_input,spikes,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,T)
 
-np.savetxt('spikes',spikes,delimiter=',')
+np.savetxt('resultados/ejecutar_experimento/spikes',spikes,delimiter=',')
 
-np.savetxt('label',np.array(data_test['label']),delimiter=',')
+np.savetxt('resultados/ejecutar_experimento/label',np.array(data_test['label']),delimiter=',')
 
-np.savetxt('value',np.array(data_test['value']),delimiter=',')
+np.savetxt('resultados/ejecutar_experimento/value',np.array(data_test['value']),delimiter=',')
 
-with open('n1','w') as n1:
+with open('resultados/ejecutar_experimento/n1','w') as n1:
     n1.write(f'{R}\n')
 
-with open('n2','w') as n2:
+with open('resultados/ejecutar_experimento/n2','w') as n2:
     n2.write(f'{n}\n')
