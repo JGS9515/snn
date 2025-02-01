@@ -6,7 +6,7 @@ import argparse
 import json
 import optuna
 from sklearn.model_selection import TimeSeriesSplit
-from dependencias import *
+from iago.dependencias import *
 from sklearn.metrics import roc_curve, auc, precision_recall_fscore_support
 from dependencias_javi import *
 
