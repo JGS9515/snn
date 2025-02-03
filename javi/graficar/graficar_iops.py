@@ -13,18 +13,24 @@ df = pd.read_csv(csv_path)
 # Convertir timestamp a datetime
 df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
 
-# Separar valores normales y anomalías 
-normal_data = df[df["label"] == 0]
-anomalies = df[df["label"] == 1]
+
+#Graficar solamente la parte de prueb
+# Obtener solo la segunda mitad del dataset
+midpoint = len(df) // 2
+df_filtered = df.iloc[midpoint:]
+
+# Separar valores normales y anomalías del dataset filtrado
+normal_data = df_filtered[df_filtered["label"] == 0]
+anomalies = df_filtered[df_filtered["label"] == 1]
 
 # Configurar el gráfico
 plt.figure(figsize=(18, 6))
-plt.title("Flujo de personas en CalIt2 con detección de anomalías")
+plt.title("Flujo de personas en IOPS con detección de anomalías")
 plt.xlabel("Fecha")
 plt.ylabel("Número de personas")
 
-# Graficar serie temporal completa
-plt.plot(df["timestamp"], df["value"], 
+# Graficar serie temporal filtrada
+plt.plot(df_filtered["timestamp"], df_filtered["value"], 
          color="steelblue", 
          linewidth=0.8,
          label="Flujo normal")
