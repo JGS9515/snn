@@ -323,11 +323,43 @@ secuencias2test=convertir_data(data_test,T,cuantiles,R)
 print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
 spikes_input,spikes,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,T)
 
-np.savetxt('resultados/ejecutar_experimento/spikes',spikes,delimiter=',')
+# Save spikes
+np.savetxt('resultados/ejecutar_experimento/spikes', spikes, delimiter=',')
 
-np.savetxt('resultados/ejecutar_experimento/label',np.array(data_test['label']),delimiter=',')
+# Convert and save labels - handle NA values properly
+labels = data_test['label'].replace([np.inf, -np.inf], np.nan)  # Replace infinities
+labels = labels.astype(float)  # Convert to float
+labels = labels.to_numpy()  # Convert to numpy array
+np.savetxt('resultados/ejecutar_experimento/label', labels, delimiter=',')
 
-np.savetxt('resultados/ejecutar_experimento/value',np.array(data_test['value']),delimiter=',')
+# Convert and save values - handle NA values properly 
+values = data_test['value'].replace([np.inf, -np.inf], np.nan)
+values = values.astype(float)
+values = values.to_numpy()
+np.savetxt('resultados/ejecutar_experimento/value', values, delimiter=',')
+
+# Save timestamps
+timestamps = data_test['timestamp'].replace([np.inf, -np.inf], np.nan)
+timestamps = timestamps.astype(float)
+timestamps = timestamps.to_numpy()
+np.savetxt('resultados/ejecutar_experimento/timestamp', timestamps, delimiter=',')
+
+
+# Reshape/flatten spikes to 1D if needed
+spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
+
+# Create DataFrame with 1D arrays
+results_df = pd.DataFrame({
+    'timestamp': timestamps,
+    'value': values,
+    'label': spikes_1d
+})
+
+# Save to CSV with same format as original
+results_df.to_csv('resultados/ejecutar_experimento/results.csv', 
+                  index=False,
+                  float_format='%.6f')
+
 
 with open('resultados/ejecutar_experimento/n1','w') as n1:
     n1.write(f'{R}\n')
