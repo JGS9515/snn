@@ -10,6 +10,7 @@ from bindsnet.learning import PostPre
 #Este código se usaría como base para iterar sobre las distintas combinaciones de parámetros.
 #'nuu.csv'#
 path='Nuevos datasets/iops/preliminar/train_procesado_javi/1c35dbf57f55f5e4_filled.csv'
+# path='Nuevos datasets/Callt2/preliminar/train_label_filled.csv'
 
 #Establecemos valores para los parámetros que nos interesan:
 nu1_pre=0.1 #Actualización de pesos presinápticos en la capa A. Valores positivos penalizan y negativos excitan.
@@ -23,10 +24,10 @@ nu2_post=-0.1 #Actualización de pesos postsinápticos en la capa B. Valores pos
 #Para ello, nos inventamos la variable a, que será la proporción del rango de datos de entrenamiento que inflamos por encima y por debajo:
 a=0.1
 #La resolución, r, indica cuán pequeños tomamos los rangos al codificar:
-r=0.01
+r=0.05
 
 #Número de neuronas en la capa B.
-n=1000
+n=200
 
 #Umbral de disparo de las neuronas LIF:
 umbral=-52
@@ -34,7 +35,7 @@ umbral=-52
 #Decaimiento, en tiempo, de las neuronas LIF:
 decaimiento=100
 
-T = 1000 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
+T = 250 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
 #Usar el máximo de T para evitar problemas con los periodos de datos.
 expansion=100
 
