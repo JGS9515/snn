@@ -5,6 +5,7 @@ from bindsnet.network.topology import Connection
 from bindsnet.network.monitors import Monitor
 from bindsnet.analysis.plotting import plot_spikes, plot_voltages
 from bindsnet.learning import PostPre
+import torch.nn.functional as F
 
 #Código ppal para lanzar la experimentación para la detección de anomalías con bindsnet y STDP.
 #Este código se usaría como base para iterar sobre las distintas combinaciones de parámetros.
@@ -162,23 +163,34 @@ def convertir_data(data,T,cuantiles,R,is_train=False):
     return secuencias
 
 
+# Function to create a Gaussian kernel
+def create_gaussian_kernel(kernel_size=5, sigma=1.0):
+    # Create a 1D Gaussian kernel
+    x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size)
+    gaussian = torch.exp(-x**2 / (2*sigma**2))
+    gaussian = gaussian / gaussian.sum()  # Normalize
+    return gaussian.view(1, 1, -1)  # Shape for 1D convolution
+
+
 def crear_red():
-    #Aquí creamos la red.
-    
+    # Create the network
     network = Network()
     
-    #Creamos las capas de entrada e interna:
-    source_layer = Input(n=R,traces=True)
-    target_layer = LIFNodes(n=n,traces=True,thresh=umbral, tc_decay=decaimiento)
+    # Create layers: input -> internal -> conv
+    source_layer = Input(n=R, traces=True)
+    target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)
+    conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)  # Output convolutional layer
     
-    network.add_layer(
-        layer=source_layer, name="A"
-    )
-    network.add_layer(
-        layer=target_layer, name="B"
-    )
+    network.add_layer(layer=source_layer, name="A")
+    network.add_layer(layer=target_layer, name="B")
+    network.add_layer(layer=conv_layer, name="C")
     
     #Creamos conexiones entre las capas de entrada y la recurrente:
+    # Create Gaussian kernel
+    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0)
+    kernel_weights = kernel.repeat(n, 1, 1)  # Repeat for each output channel
+    
+    # Create connections between input layer and recurrent layer
     forward_connection = Connection(
         source=source_layer,
         target=target_layer,
@@ -202,8 +214,18 @@ def crear_red():
         connection=recurrent_connection, source="B", target="B"
     )
     
+    # Connect layer B to convolutional layer
+    conv_connection = Connection(
+        source=target_layer,
+        target=conv_layer,
+        w=torch.ones(target_layer.n, conv_layer.n)  # Initial weights for conv connection
+    )
+
+    network.add_connection(connection=conv_connection, source="B", target="C")
+    
     #Creamos los monitores. Sirven para registrar los spikes y voltajes:
     #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
+    # Create monitors
     source_monitor = Monitor(
         obj=source_layer,
         state_vars=("s",),  #Registramos sólo los spikes.
@@ -215,49 +237,72 @@ def crear_red():
         state_vars=("s", "v"),  #Registramos spikes y voltajes, por si nos interesa lo segundo también.
         time=T,
     )
+    conv_monitor = Monitor(
+        obj=conv_layer,
+        state_vars=("s", "v"),
+        time=T,
+    )
     
     network.add_monitor(monitor=source_monitor, name="X")
     network.add_monitor(monitor=target_monitor, name="Y")
+    network.add_monitor(monitor=conv_monitor, name="Conv_mon")
     
-    
-    return [network,source_monitor,target_monitor]
+    return [network, source_monitor, target_monitor, conv_monitor]
 
 
-def ejecutar_red(secuencias,network,source_monitor,target_monitor,T):
+def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T):
     #Función para ejecutar la red con los datos que se quieran, ya sea para entrenamiento o evaluación.
     
-    #Creamos los objetos lista en que almacenaremos los resultados:
-    sp0=[]
-    sp1=[]
+    #Creamos listas en que almacenaremos los resultados:
+    sp0 = []
+    sp1 = []
+    sp_conv = []
     
-    #Entrenamos:
-    j=1
+    j = 1
     for i in secuencias:
-        #Los datos de entrada serán una tupla con tensores de pytorch, pasamos cada una:
         print(f'Ejecutando secuencia {j}')
-        j+=1
-        inputs={'A':i.T}
+        j += 1
+        
+        # Prepare inputs
+        inputs = {'A': i.T}
+        
         network.run(inputs=inputs, time=T)
         
-        #Obtenemos los spikes a lo largo de la simulación:
+        # Get spikes from all layers
         spikes = {
-            "X": source_monitor.get("s"), "B": target_monitor.get("s")
+            "X": source_monitor.get("s"),
+            "B": target_monitor.get("s"),
+            "C": conv_monitor.get("s")
         }
+        
+        # Apply Gaussian convolution to B layer spikes
+        b_spikes = spikes["B"].float()  # Convert to float for convolution [T, 1, n]
+        
+        # Reshape para la convolución: [1, 1, T]
+        b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)  # Sumamos sobre neuronas y transponemos
+        
+        conv_spikes = F.conv1d(
+            b_spikes_sum,  # [1, 1, T]
+            create_gaussian_kernel(),
+            padding='same'
+        )
+        
         sp0.append(spikes['X'].sum(axis=2))
         sp1.append(spikes['B'].sum(axis=2))
-        voltages = {"Y": target_monitor.get("v")}
-        #Reseteo voltajes, venga:
-        network=reset_voltajes(network)
+        sp_conv.append(conv_spikes.squeeze())  # Eliminamos dimensiones extras
         
+        network = reset_voltajes(network)
     
-    #Concatenamos y devolvemos:
-    sp0=torch.cat(sp0)
-    sp0=sp0.detach().numpy()
+    sp0 = torch.cat(sp0)
+    sp0 = sp0.detach().numpy()
     
-    sp1=torch.cat(sp1)
-    sp1=sp1.detach().numpy()
+    sp1 = torch.cat(sp1)
+    sp1 = sp1.detach().numpy()
     
-    return [sp0,sp1,network]
+    sp_conv = torch.cat(sp_conv)
+    sp_conv = sp_conv.detach().numpy()
+    
+    return [sp0, sp1, sp_conv, network]
 
 
 #Lectura de datos:
@@ -297,7 +342,7 @@ cuantiles=torch.FloatTensor(np.arange(minimo-a*amplitud,maximo+amplitud*a,(maxim
 R=len(cuantiles)-1
 
 #Crea la red.
-network, source_monitor,target_monitor = crear_red()
+network, source_monitor, target_monitor, conv_monitor = crear_red()
 
 #Dividimos el train en secuencias:
 data_train=dividir(data_train,T)
@@ -313,7 +358,7 @@ network.learning=True
 for s in data_train:
     secuencias2train=convertir_data(s,T,cuantiles,R,is_train=True)
     print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
-    spikes_input,spikes,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,T)
+    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T)
     #Reseteamos los voltajes:
     network=reset_voltajes(network)
 
@@ -322,10 +367,11 @@ network.learning=False
 secuencias2test=convertir_data(data_test,T,cuantiles,R)
 
 print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
-spikes_input,spikes,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,T)
+spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T)
 
 # Save spikes
 np.savetxt('resultados/ejecutar_experimento/spikes', spikes, delimiter=',')
+np.savetxt('resultados/ejecutar_experimento/spikes_conv', spikes_conv, delimiter=',')
 
 # Convert and save labels - handle NA values properly
 labels = data_test['label'].replace([np.inf, -np.inf], np.nan)  # Replace infinities
@@ -360,6 +406,19 @@ results_df = pd.DataFrame({
 results_df.to_csv('resultados/ejecutar_experimento/results.csv', 
                   index=False,
                   float_format='%.6f')
+
+spikes_conv_1d = spikes_conv.sum(axis=1) if len(spikes_conv.shape) > 1 else spikes_conv
+
+results_conv_df = pd.DataFrame({
+    'timestamp': timestamps,
+    'value': values,
+    'label': spikes_conv_1d
+})
+
+results_conv_df.to_csv('resultados/ejecutar_experimento/results_conv.csv', 
+                      index=False,
+                      float_format='%.6f')
+
 
 
 with open('resultados/ejecutar_experimento/n1','w') as n1:
