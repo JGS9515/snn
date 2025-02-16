@@ -128,7 +128,7 @@ def podar(x,q1,q2,cuantiles=None):
     return s
 
 
-def convertir_data(data,T,cuantiles,R,is_train=False):
+def convertir_data(data,T,cuantiles,snn_input_layer_neurons_size,is_train=False):
     #Función que lee los datos y los prepara.
     
     #Esta parte debe ser modificada para obtener la serie temporal de interés
@@ -148,9 +148,9 @@ def convertir_data(data,T,cuantiles,R,is_train=False):
     
     #Construimos el tensor con los datos codificados. Básicamente, para cada dato de entrada tendremos una secuencia donde 
     #todos los valores son 0 menos 1, correspondiente al cuantil correspondiente al dato de entrada.
-    serie2input=torch.cat([serie.unsqueeze(0)] * R, dim=0)
+    serie2input=torch.cat([serie.unsqueeze(0)] * snn_input_layer_neurons_size, dim=0)
     
-    for i in range(R):
+    for i in range(snn_input_layer_neurons_size):
         serie2input[i,:]=podar(serie2input[i,:],cuantiles[i],cuantiles[i+1])
     
     #Lo dividimos en función del tiempo de exposición T:
@@ -177,7 +177,7 @@ def crear_red():
     network = Network()
     
     # Create layers: input -> internal -> conv
-    source_layer = Input(n=R, traces=True)
+    source_layer = Input(n=snn_input_layer_neurons_size, traces=True)
     target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)
     conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)  # Output convolutional layer
     
@@ -338,8 +338,8 @@ maximo=max(data_train['value'][data_train['label']!=1])
 amplitud=maximo-minimo
 cuantiles=torch.FloatTensor(np.arange(minimo-a*amplitud,maximo+amplitud*a,(maximo-minimo)*r))
 
-#Ahora, establecemos el valor de R, que será el número de neuronas de la capa de entrada:
-R=len(cuantiles)-1
+#Ahora, establecemos el valor de snn_input_layer_neurons_size, que será el número de neuronas de la capa de entrada:
+snn_input_layer_neurons_size=len(cuantiles)-1
 
 #Crea la red.
 network, source_monitor, target_monitor, conv_monitor = crear_red()
@@ -356,7 +356,7 @@ data_test=padd(data_test,T)
 network.learning=True
 
 for s in data_train:
-    secuencias2train=convertir_data(s,T,cuantiles,R,is_train=True)
+    secuencias2train=convertir_data(s,T,cuantiles,snn_input_layer_neurons_size,is_train=True)
     print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
     spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T)
     #Reseteamos los voltajes:
@@ -364,7 +364,7 @@ for s in data_train:
 
 #Ahora, el test:
 network.learning=False
-secuencias2test=convertir_data(data_test,T,cuantiles,R)
+secuencias2test=convertir_data(data_test,T,cuantiles,snn_input_layer_neurons_size)
 
 print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
 spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T)
@@ -422,7 +422,7 @@ results_conv_df.to_csv('resultados/ejecutar_experimento/results_conv.csv',
 
 
 with open('resultados/ejecutar_experimento/n1','w') as n1:
-    n1.write(f'{R}\n')
+    n1.write(f'{snn_input_layer_neurons_size}\n')
 
 with open('resultados/ejecutar_experimento/n2','w') as n2:
     n2.write(f'{n}\n')
