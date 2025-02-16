@@ -7,6 +7,9 @@ from bindsnet.analysis.plotting import plot_spikes, plot_voltages
 from bindsnet.learning import PostPre
 import torch.nn.functional as F
 
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
 #Código ppal para lanzar la experimentación para la detección de anomalías con bindsnet y STDP.
 #Este código se usaría como base para iterar sobre las distintas combinaciones de parámetros.
 #'nuu.csv'#
@@ -391,6 +394,18 @@ timestamps = timestamps.astype(float)
 timestamps = timestamps.to_numpy()
 np.savetxt('resultados/ejecutar_experimento/timestamp', timestamps, delimiter=',')
 
+# Create DataFrame with 1D arrays
+results_df = pd.DataFrame({
+    'timestamp': timestamps,
+    'value': values,
+    'label': labels
+})
+
+# Save to CSV with same format as original
+results_df.to_csv('resultados/ejecutar_experimento/data_test.csv', 
+                  index=False,
+                  float_format='%.6f')
+
 
 # Reshape/flatten spikes to 1D if needed
 spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
@@ -426,3 +441,30 @@ with open('resultados/ejecutar_experimento/n1','w') as n1:
 
 with open('resultados/ejecutar_experimento/n2','w') as n2:
     n2.write(f'{n}\n')
+
+
+# Si spikes_1d y spikes_conv_1d tienen diferente tamaño que y_true, debes reestructurarlos
+# Por ejemplo, si fueron generados por secuencias, podrías concatenarlos o resumirlos de forma que sea comparable
+# Suponiendo que spikes_1d y spikes_conv_1d tienen la misma longitud que y_true:
+
+# Convertir y_true a float y reemplazar NA (NaN) por 0
+y_true = data_test['label'].astype(float).to_numpy()
+y_true = np.nan_to_num(y_true, nan=0.0)
+
+# Asegurarse de que spikes_1d sea un array float sin NaN
+spikes_1d = spikes_1d.astype(float)
+spikes_1d = np.nan_to_num(spikes_1d, nan=0.0)
+
+mse_B = mean_squared_error(y_true, spikes_1d)
+print("MSE capa B:", mse_B)
+with open('resultados/ejecutar_experimento/MSE_capa_B','w') as n2:
+    n2.write(f'{mse_B}\n')
+
+# Repetir el proceso para spikes_conv_1d si es necesario
+spikes_conv_1d = spikes_conv_1d.astype(float)
+spikes_conv_1d = np.nan_to_num(spikes_conv_1d, nan=0.0)
+
+mse_C = mean_squared_error(y_true, spikes_conv_1d)    
+print("MSE capa C:", mse_C)
+with open('resultados/ejecutar_experimento/MSE_capa_C','w') as n2:
+    n2.write(f'{mse_C}\n')
