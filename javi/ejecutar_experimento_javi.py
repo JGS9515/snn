@@ -83,15 +83,15 @@ def experiment(nu1_pre, nu1_post, nu2_pre, nu2_post, a, r, n, threshold, decay, 
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
     spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T)
 
-    guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size)
-    
+    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size)
+    return mse_B, mse_C
 
 def objective(trial):
 
     config = {
         'nu1': trial.suggest_float('nu1', -0.5, 0.5),
         'nu2': trial.suggest_float('nu2', -0.5, 0.5),
-        'threshold': trial.suggest_float('threshold', 0.1, 1.0),
+        'threshold': trial.suggest_float('threshold', -65, -50),
         'decay': trial.suggest_float('decay', 80, 150),
     }
     print(f"config: {config}")
@@ -122,10 +122,15 @@ def objective(trial):
     T = 250 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
     #Usar el máximo de T para evitar problemas con los periodos de datos.
     expansion=100
-
-    experiment(nu1_pre, nu1_post, nu2_pre, nu2_post, a, r, n, threshold, decay, T, expansion, path)
-    
-
+    try:
+        # Run the experiment
+        mse_B, mse_C = experiment(nu1_pre, nu1_post, nu2_pre, nu2_post, a, r, n, threshold, decay, T, expansion, path)
+        
+        return mse_B
+    except Exception as e:
+        print(f"Trial failed with error: {e}")
+        # Return a very low score for failed trials
+        return float('inf')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Optimización de hiperparámetros con Optuna.')
@@ -135,12 +140,12 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
     args = parser.parse_args()
 
-    study = optuna.create_study(direction='maximize')
+    study = optuna.create_study(direction='minimize')
     study.optimize(objective, n_trials=args.n_trials)
 
     print('Mejor configuración encontrada:')
     print(study.best_params)
-    print(f'Mejor F1-score: {study.best_value}')
+    print(f'Mejor MSE_B: {study.best_value}')
 
     # Guardar la mejor configuración
     with open('best_config.json', 'w') as f:

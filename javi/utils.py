@@ -366,3 +366,5 @@ def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_si
     print("MSE capa C:", mse_C)
     with open('resultados/ejecutar_experimento/MSE_capa_C','w') as n2:
         n2.write(f'{mse_C}\n')
+        
+    return mse_B, mse_C
