@@ -15,9 +15,8 @@ import numpy as np
 
 from utils import *
 
-def experiment(nu1_pre, nu1_post, nu2_pre, nu2_post, a, r, n, threshold, decay, T, expansion, path):
-    nu1=(nu1_pre,nu1_post)
-    nu2=(nu2_pre,nu2_post)
+def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path):
+   
 
     #Lectura de datos:
     #Esperamos que estos datos tengan las columnas 'label' y 'value'.
@@ -97,11 +96,11 @@ def objective(trial):
     print(f"config: {config}")
 
     #Establecemos valores para los parámetros que nos interesan:
-    nu1_pre=0.1 #Actualización de pesos presinápticos en la capa A. Valores positivos penalizan y negativos excitan.
-    nu1_post=-0.1 #Actualización de pesos postsinápticos en la capa A. Valores postivos excitan y negativos penalizan.
+    # nu1_pre=0.1 #Actualización de pesos presinápticos en la capa A. Valores positivos penalizan y negativos excitan.
+    # nu1_post=-0.1 #Actualización de pesos postsinápticos en la capa A. Valores postivos excitan y negativos penalizan.
 
-    nu2_pre=0.1 #Actualización de pesos presinápticos en la capa B. Valores positivos penalizan y negativos excitan.
-    nu2_post=-0.1 #Actualización de pesos postsinápticos en la capa B. Valores postivos excitan y negativos penalizan.
+    # nu2_pre=0.1 #Actualización de pesos presinápticos en la capa B. Valores positivos penalizan y negativos excitan.
+    # nu2_post=-0.1 #Actualización de pesos postsinápticos en la capa B. Valores postivos excitan y negativos penalizan.
 
     #Parámetros que definen la amplitud del rango de cuantiles.
     #La idea es que el valor mínimo para la codificación sea inferior al mínimo de los datos de entrenamiento, por un margen. El valor máximo debe ser también  mayor que el máximo de los datos por un margen.
@@ -114,17 +113,20 @@ def objective(trial):
     n=200
 
     #Umbral de disparo de las neuronas LIF:
-    threshold=-52
+    # threshold=-52
 
-    #Decaimiento, en tiempo, de las neuronas LIF:
-    decay=100
+    # #Decaimiento, en tiempo, de las neuronas LIF:
+    # decay=100
 
     T = 250 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
     #Usar el máximo de T para evitar problemas con los periodos de datos.
     expansion=100
+    
+    nu1=(config['nu1'],config['nu1'])
+    nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment
-        mse_B, mse_C = experiment(nu1_pre, nu1_post, nu2_pre, nu2_post, a, r, n, threshold, decay, T, expansion, path)
+        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path)
         
         return mse_B
     except Exception as e:
