@@ -151,8 +151,9 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
     
     #Creamos conexiones entre las capas de entrada y la recurrente:
     # Create Gaussian kernel
-    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0)
-    kernel_weights = kernel.repeat(n, 1, 1)  # Repeat for each output channel
+    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0).repeat(n, 1, 1)
+    kernel_size=5
+    sigma=1.0
     
     # Create connections between input layer and recurrent layer
     forward_connection = Connection(
@@ -178,14 +179,34 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
         connection=recurrent_connection, source="B", target="B"
     )
     
-    # Connect layer B to convolutional layer
+     # Conexión convolucional B->C con matriz Toeplitz
+    weights = torch.zeros(n, n)
+    center = kernel_size // 2
+    for i in range(n):
+        start = max(0, i - center)
+        end = min(n, i + center + 1)
+        k_start = max(0, center - i)
+        k_end = kernel_size - max(0, i + center + 1 - n)
+        weights[i, start:end] = kernel[0,0,k_start:k_end]
+    
     conv_connection = Connection(
         source=target_layer,
         target=conv_layer,
-        w=torch.ones(target_layer.n, conv_layer.n)  # Initial weights for conv connection
+        w=weights,
+        update_rule=PostPre,
+        nu=nu2,
+        norm=0.5 * kernel_size  # Normalización por tamaño del kernel
     )
+    network.add_connection(conv_connection, "B", "C")
+    
+    # # Connect layer B to convolutional layer
+    # conv_connection = Connection(
+    #     source=target_layer,
+    #     target=conv_layer,
+    #     w=torch.ones(target_layer.n, conv_layer.n)  # Initial weights for conv connection
+    # )
 
-    network.add_connection(connection=conv_connection, source="B", target="C")
+    # network.add_connection(connection=conv_connection, source="B", target="C")
     
     #Creamos los monitores. Sirven para registrar los spikes y voltajes:
     #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
