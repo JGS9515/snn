@@ -35,10 +35,10 @@ r=0.05
 n=200
 
 #Umbral de disparo de las neuronas LIF:
-umbral=-52
+threshold=-52
 
 #Decaimiento, en tiempo, de las neuronas LIF:
-decaimiento=100
+decay=100
 
 T = 250 #Tiempo de exposición. Puede influir por la parte del entrenamiento, en la inferencia no porque los voltajes se conservan.
 #Usar el máximo de T para evitar problemas con los periodos de datos.
@@ -85,7 +85,7 @@ cuantiles=torch.FloatTensor(np.arange(minimo-a*amplitud,maximo+amplitud*a,(maxim
 snn_input_layer_neurons_size=len(cuantiles)-1
 
 #Crea la red.
-network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decaimiento,umbral,nu1,nu2,n,T)
+network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T)
 
 #Dividimos el train en secuencias:
 data_train=dividir(data_train,T)
