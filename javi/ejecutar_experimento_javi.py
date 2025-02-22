@@ -144,11 +144,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Optimización de hiperparámetros con Optuna.')
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
     dataset_name=path.split('\\')[1]
-    snn_process_layer_neurons_size=200
+    snn_process_layer_neurons_size=100
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
     parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
-    parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='gpu', help='Device to use (cpu/gpu)')
+    parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='cpu', help='Device to use (cpu/gpu)')
     args = parser.parse_args()
 
 
@@ -166,17 +166,19 @@ if __name__ == "__main__":
     print(f'Duración total: {duration}')
 
     # Guardar la mejor configuración
-    os.makedirs(f"resultados/{date_starting_trials}", exist_ok=True)
+    base_path = f'resultados/{dataset_name}/n_{snn_process_layer_neurons_size}/{date_starting_trials}'
+    os.makedirs(base_path, exist_ok=True)
     best_trial_number = study.best_trial.number
     results = {
         "best_params": study.best_params,
         "best_trial": best_trial_number+1,
         "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
+        "device": str(device),  # Convert device to string
         "best_mse_B": study.best_value,
         "amoumt_of_trials": args.n_trials,
-        "duration_seconds": duration.total_seconds(),  # Add duration to results
+        "duration_seconds": duration.total_seconds(),
         "start_time": start_time.isoformat(),
         "end_time": end_time.isoformat()
     }
-    with open(f"resultados/{date_starting_trials}/best_config.json", "w") as f:
+    with open(f"{base_path}/best_config.json", "w") as f:
         json.dump(results, f, indent=4)
