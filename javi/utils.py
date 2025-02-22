@@ -6,6 +6,8 @@ import torch, pandas as pd, numpy as np, os
 from bindsnet.learning import PostPre
 import torch.nn.functional as F
 from sklearn.metrics import mean_squared_error
+from datetime import datetime
+import os
 
 
 def reset_voltajes(network):
@@ -144,7 +146,7 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
     source_layer = Input(n=snn_input_layer_neurons_size, traces=True)
     target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)
     conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)  # Output convolutional layer
-    
+
     network.add_layer(layer=source_layer, name="A")
     network.add_layer(layer=target_layer, name="B")
     network.add_layer(layer=conv_layer, name="C")
@@ -289,29 +291,34 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
     
     return [sp0, sp1, sp_conv, network]
 
-def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size):
+def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,date_starting_trials):
+   
+    # Create directory structure
+    
+    base_path = f'resultados/{date_starting_trials}/trial_{n_trial}'
+    os.makedirs(base_path, exist_ok=True)
 
     # Save spikes
-    np.savetxt('resultados/ejecutar_experimento/spikes', spikes, delimiter=',')
-    np.savetxt('resultados/ejecutar_experimento/spikes_conv', spikes_conv, delimiter=',')
+    np.savetxt(f'{base_path}/spikes', spikes, delimiter=',')
+    np.savetxt(f'{base_path}/spikes_conv', spikes_conv, delimiter=',')
 
     # Convert and save labels - handle NA values properly
-    labels = data_test['label'].replace([np.inf, -np.inf], np.nan)  # Replace infinities
-    labels = labels.astype(float)  # Convert to float
-    labels = labels.to_numpy()  # Convert to numpy array
-    np.savetxt('resultados/ejecutar_experimento/label', labels, delimiter=',')
+    labels = data_test['label'].replace([np.inf, -np.inf], np.nan)
+    labels = labels.astype(float)
+    labels = labels.to_numpy()
+    np.savetxt(f'{base_path}/label', labels, delimiter=',')
 
     # Convert and save values - handle NA values properly 
     values = data_test['value'].replace([np.inf, -np.inf], np.nan)
     values = values.astype(float)
     values = values.to_numpy()
-    np.savetxt('resultados/ejecutar_experimento/value', values, delimiter=',')
+    np.savetxt(f'{base_path}/value', values, delimiter=',')
 
     # Save timestamps
     timestamps = data_test['timestamp'].replace([np.inf, -np.inf], np.nan)
     timestamps = timestamps.astype(float)
     timestamps = timestamps.to_numpy()
-    np.savetxt('resultados/ejecutar_experimento/timestamp', timestamps, delimiter=',')
+    np.savetxt(f'{base_path}/timestamp', timestamps, delimiter=',')
 
     # Create DataFrame with 1D arrays
     results_df = pd.DataFrame({
@@ -321,10 +328,9 @@ def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_si
     })
 
     # Save to CSV with same format as original
-    results_df.to_csv('resultados/ejecutar_experimento/data_test.csv', 
-                    index=False,
-                    float_format='%.6f')
-
+    results_df.to_csv(f'{base_path}/data_test.csv', 
+                     index=False,
+                     float_format='%.6f')
 
     # Reshape/flatten spikes to 1D if needed
     spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
@@ -337,9 +343,9 @@ def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_si
     })
 
     # Save to CSV with same format as original
-    results_df.to_csv('resultados/ejecutar_experimento/results.csv', 
-                    index=False,
-                    float_format='%.6f')
+    results_df.to_csv(f'{base_path}/results.csv', 
+                     index=False,
+                     float_format='%.6f')
 
     spikes_conv_1d = spikes_conv.sum(axis=1) if len(spikes_conv.shape) > 1 else spikes_conv
 
@@ -349,34 +355,26 @@ def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_si
         'label': spikes_conv_1d
     })
 
-    results_conv_df.to_csv('resultados/ejecutar_experimento/results_conv.csv', 
-                        index=False,
-                        float_format='%.6f')
+    results_conv_df.to_csv(f'{base_path}/results_conv.csv', 
+                          index=False,
+                          float_format='%.6f')
 
-
-
-    with open('resultados/ejecutar_experimento/n1','w') as n1:
+    with open(f'{base_path}/n1', 'w') as n1:
         n1.write(f'{snn_input_layer_neurons_size}\n')
 
-    with open('resultados/ejecutar_experimento/n2','w') as n2:
+    with open(f'{base_path}/n2', 'w') as n2:
         n2.write(f'{n}\n')
 
-
-    # Si spikes_1d y spikes_conv_1d tienen diferente tamaño que y_true, debes reestructurarlos
-    # Por ejemplo, si fueron generados por secuencias, podrías concatenarlos o resumirlos de forma que sea comparable
-    # Suponiendo que spikes_1d y spikes_conv_1d tienen la misma longitud que y_true:
-
-    # Convertir y_true a float y reemplazar NA (NaN) por 0
+    # Calculate MSE scores
     y_true = data_test['label'].astype(float).to_numpy()
     y_true = np.nan_to_num(y_true, nan=0.0)
 
-    # Asegurarse de que spikes_1d sea un array float sin NaN
     spikes_1d = spikes_1d.astype(float)
     spikes_1d = np.nan_to_num(spikes_1d, nan=0.0)
 
     mse_B = mean_squared_error(y_true, spikes_1d)
     print("MSE capa B:", mse_B)
-    with open('resultados/ejecutar_experimento/MSE_capa_B','w') as n2:
+    with open(f'{base_path}/MSE_capa_B', 'w') as n2:
         n2.write(f'{mse_B}\n')
 
     # Repetir el proceso para spikes_conv_1d si es necesario
@@ -385,7 +383,7 @@ def guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_si
 
     mse_C = mean_squared_error(y_true, spikes_conv_1d)    
     print("MSE capa C:", mse_C)
-    with open('resultados/ejecutar_experimento/MSE_capa_C','w') as n2:
+    with open(f'{base_path}/MSE_capa_C', 'w') as n2:
         n2.write(f'{mse_C}\n')
         
     return mse_B, mse_C

@@ -14,8 +14,8 @@ import optuna
 import numpy as np
 
 from utils import *
-
-def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path):
+date_starting_trials = datetime.now().strftime('%Y_%m_%d_%H_%M')  # Format includes year, month, day, hour and minute
+def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
    
 
     #Lectura de datos:
@@ -82,11 +82,12 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path):
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
     spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T)
 
-    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size)
+    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials)
     return mse_B, mse_C
 
 def objective(trial):
 
+    print(f"Running trial: {trial.number}")
     config = {
         'nu1': trial.suggest_float('nu1', -0.5, 0.5),
         'nu2': trial.suggest_float('nu2', -0.5, 0.5),
@@ -126,7 +127,7 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment
-        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path)
+        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path,trial.number)
         
         return mse_B
     except Exception as e:
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
-    parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
+    parser.add_argument('-n', '--n_trials', type=int, default=2, help='Número de trials para Optuna')
     args = parser.parse_args()
 
     study = optuna.create_study(direction='minimize')
@@ -150,5 +151,11 @@ if __name__ == "__main__":
     print(f'Mejor MSE_B: {study.best_value}')
 
     # Guardar la mejor configuración
-    with open('best_config.json', 'w') as f:
-        json.dump(study.best_params, f, indent=4)
+    os.makedirs(f"resultados/{date_starting_trials}", exist_ok=True)
+    best_trial_number = study.best_trial.number
+    results = {
+        "best_params": study.best_params,
+        "best_trial": best_trial_number
+    }
+    with open(f"resultados/{date_starting_trials}/best_config.json", "w") as f:
+        json.dump(results, f, indent=4)
