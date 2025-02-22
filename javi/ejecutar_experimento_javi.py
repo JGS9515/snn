@@ -20,8 +20,7 @@ date_starting_trials = datetime.now().strftime('%Y_%m_%d-%H_%M')  # Format inclu
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"Using device: {device}")
 
-def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
-   
+def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial):
 
     #Lectura de datos:
     #Esperamos que estos datos tengan las columnas 'label' y 'value'.
@@ -60,7 +59,7 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
     snn_input_layer_neurons_size=len(cuantiles)-1
 
     #Crea la red.
-    network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T)
+    network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T,device=device)
 
     #Dividimos el train en secuencias:
     data_train=dividir(data_train,T)
@@ -74,18 +73,18 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
     network.learning=True
 
     for s in data_train:
-        secuencias2train=convertir_data(s,T,cuantiles,snn_input_layer_neurons_size,is_train=True)
+        secuencias2train=convertir_data(s,T,cuantiles,snn_input_layer_neurons_size,is_train=True,device=device)
         print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
-        spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T)
+        spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T,device=device)
         #Reseteamos los voltajes:
         network=reset_voltajes(network)
 
     #Ahora, el test:
     network.learning=False
-    secuencias2test=convertir_data(data_test,T,cuantiles,snn_input_layer_neurons_size)
+    secuencias2test=convertir_data(data_test,T,cuantiles,snn_input_layer_neurons_size,is_train=False,device=device)
 
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
-    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T)
+    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,device=device)
 
     mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials)
     return mse_B, mse_C
@@ -131,8 +130,8 @@ def objective(trial):
     nu1=(config['nu1'],config['nu1'])
     nu2=(config['nu2'],config['nu2'])
     try:
-        # Run the experiment
-        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path,trial.number + 1)
+        # Run the experiment with GPU enabled by default
+        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path, trial.number + 1)
         
         return mse_B
     except Exception as e:
@@ -148,8 +147,12 @@ if __name__ == "__main__":
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
     parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
+    parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='cpu', help='Device to use (cpu/gpu)')
     args = parser.parse_args()
 
+
+    device = torch.device("cuda" if (args.device == "gpu") and torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
     study = optuna.create_study(direction='minimize')
     study.optimize(objective, n_trials=args.n_trials)
 

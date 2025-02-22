@@ -9,10 +9,8 @@ from sklearn.metrics import mean_squared_error
 from datetime import datetime
 import os
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
 
-def reset_voltajes(network):
+def reset_voltajes(network, device='cpu'):
     network.layers['B'].v = torch.full(network.layers['B'].v.shape, -65, device=device)
     return network
 
@@ -96,7 +94,7 @@ def podar(x,q1,q2,cuantiles=None):
     return s
 
 
-def convertir_data(data, T, cuantiles, snn_input_layer_neurons_size, is_train=False):
+def convertir_data(data, T, cuantiles, snn_input_layer_neurons_size, is_train=False, device='cpu'):
     # Move cuantiles to GPU
     cuantiles = cuantiles.to(device)
     
@@ -126,7 +124,7 @@ def convertir_data(data, T, cuantiles, snn_input_layer_neurons_size, is_train=Fa
 
 
 # Function to create a Gaussian kernel
-def create_gaussian_kernel(kernel_size=5, sigma=1.0):
+def create_gaussian_kernel(kernel_size=5, sigma=1.0, device='cpu'):
     # Create a 1D Gaussian kernel directly on GPU
     x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
     gaussian = torch.exp(-x**2 / (2*sigma**2))
@@ -134,7 +132,7 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0):
     return gaussian.view(1, 1, -1)  # Shape for 1D convolution
 
 
-def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T):
+def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, device='cpu'):
     # Create the network
     network = Network(dt=1.0, learning=True).to(device)
     
@@ -148,7 +146,7 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
     network.add_layer(layer=conv_layer, name="C")
     
     # Create Gaussian kernel on GPU
-    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0).repeat(n, 1, 1).to(device)
+    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0,device=device).repeat(n, 1, 1)
     kernel_size=5
     sigma=1.0
     # Create connections and ensure weights are on GPU
@@ -220,7 +218,7 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
     return [network, source_monitor, target_monitor, conv_monitor]
 
 
-def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T):
+def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, device='cpu'):
     sp0, sp1, sp_conv = [], [], []
     
     j = 1
@@ -246,7 +244,7 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
         b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)
         
         # Create and apply Gaussian kernel (already on GPU from creation)
-        kernel = create_gaussian_kernel().to(device)
+        kernel = create_gaussian_kernel(device=device)
         conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
         
         # Store results - move to CPU only when converting to numpy
@@ -255,7 +253,7 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
         sp_conv.append(conv_spikes.cpu().squeeze())
         
         # Reset network voltages
-        network = reset_voltajes(network)
+        network = reset_voltajes(network, device=device)
     
     # Concatenate results and convert to numpy arrays
     sp0 = torch.cat(sp0).cpu().detach().numpy()

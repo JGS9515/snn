@@ -1,0 +1,14 @@
+{
+    "best_params": {
+        "nu1": -0.3313727873307746,
+        "nu2": -0.3880283262066533,
+        "threshold": -55.21767982238777,
+        "decay": 129.59928238150414
+    },
+    "best_trial": 1,
+    "best_mse_B": Infinity,
+    "amoumt_of_trials": 1,
+    "duration_seconds": 1.70498,
+    "start_time": "2025-02-22T11:16:15.847368",
+    "end_time": "2025-02-22T11:16:17.552348"
+}
