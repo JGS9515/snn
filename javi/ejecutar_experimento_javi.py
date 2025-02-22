@@ -14,7 +14,12 @@ import optuna
 import numpy as np
 
 from utils import *
-date_starting_trials = datetime.now().strftime('%Y_%m_%d_%H_%M')  # Format includes year, month, day, hour and minute
+date_starting_trials = datetime.now().strftime('%Y_%m_%d-%H_%M')  # Format includes year, month, day, hour and minute
+
+# # Add this near the top of the file after imports
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# print(f"Using device: {device}")
+
 def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
    
 
@@ -136,26 +141,37 @@ def objective(trial):
         return float('inf')
 
 if __name__ == "__main__":
+    start_time = datetime.now()  # Add this line to track start time
+    
     parser = argparse.ArgumentParser(description='Optimización de hiperparámetros con Optuna.')
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
-    parser.add_argument('-n', '--n_trials', type=int, default=2, help='Número de trials para Optuna')
+    parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
     args = parser.parse_args()
 
     study = optuna.create_study(direction='minimize')
     study.optimize(objective, n_trials=args.n_trials)
 
+    end_time = datetime.now()  # Add this line to track end time
+    duration = end_time - start_time  # Calculate duration
+
     print('Mejor configuración encontrada:')
     print(study.best_params)
     print(f'Mejor MSE_B: {study.best_value}')
+    print(f'Duración total: {duration}')
 
     # Guardar la mejor configuración
     os.makedirs(f"resultados/{date_starting_trials}", exist_ok=True)
     best_trial_number = study.best_trial.number
     results = {
         "best_params": study.best_params,
-        "best_trial": best_trial_number
+        "best_trial": best_trial_number+1,
+        "best_mse_B": study.best_value,
+        "amoumt_of_trials": args.n_trials,
+        "duration_seconds": duration.total_seconds(),  # Add duration to results
+        "start_time": start_time.isoformat(),
+        "end_time": end_time.isoformat()
     }
     with open(f"resultados/{date_starting_trials}/best_config.json", "w") as f:
         json.dump(results, f, indent=4)

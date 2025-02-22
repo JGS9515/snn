@@ -9,9 +9,11 @@ from sklearn.metrics import mean_squared_error
 from datetime import datetime
 import os
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
 def reset_voltajes(network):
-    network.layers['B'].v=torch.full(network.layers['B'].v.shape,-65)
+    network.layers['B'].v = torch.full(network.layers['B'].v.shape, -65, device=device)
     return network
 
 
@@ -94,26 +96,21 @@ def podar(x,q1,q2,cuantiles=None):
     return s
 
 
-def convertir_data(data,T,cuantiles,snn_input_layer_neurons_size,is_train=False):
-    #Función que lee los datos y los prepara.
+def convertir_data(data, T, cuantiles, snn_input_layer_neurons_size, is_train=False):
+    # Move cuantiles to GPU
+    cuantiles = cuantiles.to(device)
     
-    #Esta parte debe ser modificada para obtener la serie temporal de interés
-    #almacenada en la variable serie.
-    #
-    serie=torch.FloatTensor(data['value'])
+    # Convert series to GPU tensor
+    serie = torch.FloatTensor(data['value']).to(device)
     
     #Tomamos la longitud de la serie.
     long=serie.shape[0]
     
     #Los valores inferiores al mínimo del vector de cuantiles se sustituyen por ese mínimo.
-    #Los valores mayores que el máximo de los cuantiles se sustituyen por ese máximo.
-    #Esto sirve para no perder spikes cuando se procesan los datos de prueba.
-    
     serie[serie<torch.min(cuantiles)]=torch.min(cuantiles)
     serie[serie>torch.max(cuantiles)]=torch.max(cuantiles)
     
-    #Construimos el tensor con los datos codificados. Básicamente, para cada dato de entrada tendremos una secuencia donde 
-    #todos los valores son 0 menos 1, correspondiente al cuantil correspondiente al dato de entrada.
+    #Construimos el tensor con los datos codificados.
     serie2input=torch.cat([serie.unsqueeze(0)] * snn_input_layer_neurons_size, dim=0)
     
     for i in range(snn_input_layer_neurons_size):
@@ -123,7 +120,6 @@ def convertir_data(data,T,cuantiles,snn_input_layer_neurons_size,is_train=False)
     secuencias = torch.split(serie2input,T,dim=1)
     
     if is_train:
-        #Encaso de estar entrenando, tendríamos que quitar la última secuencia:
         secuencias=secuencias[0:len(secuencias)-1]
     
     return secuencias
@@ -131,8 +127,8 @@ def convertir_data(data,T,cuantiles,snn_input_layer_neurons_size,is_train=False)
 
 # Function to create a Gaussian kernel
 def create_gaussian_kernel(kernel_size=5, sigma=1.0):
-    # Create a 1D Gaussian kernel
-    x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size)
+    # Create a 1D Gaussian kernel directly on GPU
+    x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
     gaussian = torch.exp(-x**2 / (2*sigma**2))
     gaussian = gaussian / gaussian.sum()  # Normalize
     return gaussian.view(1, 1, -1)  # Shape for 1D convolution
@@ -140,49 +136,44 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0):
 
 def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T):
     # Create the network
-    network = Network()
+    network = Network(dt=1.0, learning=True).to(device)
     
-    # Create layers: input -> internal -> conv
-    source_layer = Input(n=snn_input_layer_neurons_size, traces=True)
-    target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)
-    conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento)  # Output convolutional layer
-
+    # Create layers and move to GPU
+    source_layer = Input(n=snn_input_layer_neurons_size, traces=True).to(device)
+    target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
+    conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
+    
     network.add_layer(layer=source_layer, name="A")
     network.add_layer(layer=target_layer, name="B")
     network.add_layer(layer=conv_layer, name="C")
     
-    #Creamos conexiones entre las capas de entrada y la recurrente:
-    # Create Gaussian kernel
-    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0).repeat(n, 1, 1)
+    # Create Gaussian kernel on GPU
+    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0).repeat(n, 1, 1).to(device)
     kernel_size=5
     sigma=1.0
-    
-    # Create connections between input layer and recurrent layer
+    # Create connections and ensure weights are on GPU
     forward_connection = Connection(
         source=source_layer,
         target=target_layer,
-        w=0.05 + 0.1 * torch.randn(source_layer.n, target_layer.n),
-        update_rule=PostPre, nu=nu1#nu=(1e-4, 1e-2)    # Normal(0.05, 0.01) weights.
-    )
+        w=(0.05 + 0.1 * torch.randn(source_layer.n, target_layer.n)).to(device),
+        update_rule=PostPre, 
+        nu=nu1
+    ).to(device)
     
-    network.add_connection(
-        connection=forward_connection, source="A", target="B"
-    )
+    network.add_connection(connection=forward_connection, source="A", target="B")
     
-    # Creamos la conexión recurrente con pesos ligeramente negativos (si no, estamos metiendo posible ruido en el procesamiento de la red):
     recurrent_connection = Connection(
         source=target_layer,
         target=target_layer,
-        w=0.025 * (torch.eye(target_layer.n) - 1), 
-        update_rule=PostPre, nu=nu2#nu=(1e-4, 1e-2)
-    )
+        w=(0.025 * (torch.eye(target_layer.n) - 1)).to(device), 
+        update_rule=PostPre, 
+        nu=nu2
+    ).to(device)
     
-    network.add_connection(
-        connection=recurrent_connection, source="B", target="B"
-    )
+    network.add_connection(connection=recurrent_connection, source="B", target="B")
     
-     # Conexión convolucional B->C con matriz Toeplitz
-    weights = torch.zeros(n, n)
+    # Conexión convolucional B->C con matriz Toeplitz
+    weights = torch.zeros(n, n, device=device)  # Create tensor directly on GPU
     center = kernel_size // 2
     for i in range(n):
         start = max(0, i - center)
@@ -194,21 +185,13 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
     conv_connection = Connection(
         source=target_layer,
         target=conv_layer,
-        w=weights,
+        w=weights,  # Weights are already on GPU
         update_rule=PostPre,
         nu=nu2,
-        norm=0.5 * kernel_size  # Normalización por tamaño del kernel
-    )
-    network.add_connection(conv_connection, "B", "C")
+        norm=0.5 * kernel_size
+    ).to(device)  # Ensure connection is on GPU
     
-    # # Connect layer B to convolutional layer
-    # conv_connection = Connection(
-    #     source=target_layer,
-    #     target=conv_layer,
-    #     w=torch.ones(target_layer.n, conv_layer.n)  # Initial weights for conv connection
-    # )
-
-    # network.add_connection(connection=conv_connection, source="B", target="C")
+    network.add_connection(conv_connection, "B", "C")
     
     #Creamos los monitores. Sirven para registrar los spikes y voltajes:
     #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
@@ -238,58 +221,49 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T)
 
 
 def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T):
-    #Función para ejecutar la red con los datos que se quieran, ya sea para entrenamiento o evaluación.
-    
-    #Creamos listas en que almacenaremos los resultados:
-    sp0 = []
-    sp1 = []
-    sp_conv = []
+    sp0, sp1, sp_conv = [], [], []
     
     j = 1
     for i in secuencias:
         print(f'Ejecutando secuencia {j}')
         j += 1
         
-        # Prepare inputs
-        inputs = {'A': i.T}
+        # Move input to GPU and ensure correct shape
+        inputs = {'A': i.T.to(device)}
         
+        # Run network
         network.run(inputs=inputs, time=T)
         
-        # Get spikes from all layers
+        # Get spikes and ensure they're on GPU
         spikes = {
-            "X": source_monitor.get("s"),
-            "B": target_monitor.get("s"),
-            "C": conv_monitor.get("s")
+            "X": source_monitor.get("s").to(device),
+            "B": target_monitor.get("s").to(device),
+            "C": conv_monitor.get("s").to(device)
         }
         
-        # Apply Gaussian convolution to B layer spikes
-        b_spikes = spikes["B"].float()  # Convert to float for convolution [T, 1, n]
+        # Process B layer spikes
+        b_spikes = spikes["B"].float()  # Already on GPU
+        b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)
         
-        # Reshape para la convolución: [1, 1, T]
-        b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)  # Sumamos sobre neuronas y transponemos
+        # Create and apply Gaussian kernel (already on GPU from creation)
+        kernel = create_gaussian_kernel().to(device)
+        conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
         
-        conv_spikes = F.conv1d(
-            b_spikes_sum,  # [1, 1, T]
-            create_gaussian_kernel(),
-            padding='same'
-        )
+        # Store results - move to CPU only when converting to numpy
+        sp0.append(spikes['X'].cpu().sum(axis=2))
+        sp1.append(spikes['B'].cpu().sum(axis=2))
+        sp_conv.append(conv_spikes.cpu().squeeze())
         
-        sp0.append(spikes['X'].sum(axis=2))
-        sp1.append(spikes['B'].sum(axis=2))
-        sp_conv.append(conv_spikes.squeeze())  # Eliminamos dimensiones extras
-        
+        # Reset network voltages
         network = reset_voltajes(network)
     
-    sp0 = torch.cat(sp0)
-    sp0 = sp0.detach().numpy()
-    
-    sp1 = torch.cat(sp1)
-    sp1 = sp1.detach().numpy()
-    
-    sp_conv = torch.cat(sp_conv)
-    sp_conv = sp_conv.detach().numpy()
+    # Concatenate results and convert to numpy arrays
+    sp0 = torch.cat(sp0).cpu().detach().numpy()
+    sp1 = torch.cat(sp1).cpu().detach().numpy()
+    sp_conv = torch.cat(sp_conv).cpu().detach().numpy()
     
     return [sp0, sp1, sp_conv, network]
+
 
 def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,date_starting_trials):
    
