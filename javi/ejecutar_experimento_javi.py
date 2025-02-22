@@ -92,7 +92,7 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path,n_trial):
 
 def objective(trial):
 
-    print(f"Running trial: {trial.number}")
+    print(f"Running trial: {trial.number + 1}")
     config = {
         'nu1': trial.suggest_float('nu1', -0.5, 0.5),
         'nu2': trial.suggest_float('nu2', -0.5, 0.5),
@@ -132,7 +132,7 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment
-        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path,trial.number)
+        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path,trial.number + 1)
         
         return mse_B
     except Exception as e:
