@@ -86,7 +86,7 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial)
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
     spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,device=device)
 
-    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials)
+    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size)
     return mse_B, mse_C
 
 def objective(trial):
@@ -115,7 +115,6 @@ def objective(trial):
     r=0.05
 
     #Número de neuronas en la capa B.
-    n=200
 
     #Umbral de disparo de las neuronas LIF:
     # threshold=-52
@@ -131,7 +130,7 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment with GPU enabled by default
-        mse_B, mse_C = experiment(nu1, nu2, a, r, n, config['threshold'], config['decay'], T, expansion, path, trial.number + 1)
+        mse_B, mse_C = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1)
         
         return mse_B
     except Exception as e:
@@ -144,10 +143,12 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Optimización de hiperparámetros con Optuna.')
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
+    dataset_name=path.split('\\')[1]
+    snn_process_layer_neurons_size=200
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
     parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
-    parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='cpu', help='Device to use (cpu/gpu)')
+    parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='gpu', help='Device to use (cpu/gpu)')
     args = parser.parse_args()
 
 
@@ -170,6 +171,7 @@ if __name__ == "__main__":
     results = {
         "best_params": study.best_params,
         "best_trial": best_trial_number+1,
+        "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
         "best_mse_B": study.best_value,
         "amoumt_of_trials": args.n_trials,
         "duration_seconds": duration.total_seconds(),  # Add duration to results

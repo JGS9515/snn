@@ -1,0 +1,15 @@
+{
+    "best_params": {
+        "nu1": -0.22775635034420894,
+        "nu2": -0.06738521171406597,
+        "threshold": -52.85629751524888,
+        "decay": 107.30314027737418
+    },
+    "best_trial": 1,
+    "snn_process_layer_neurons_size": 200,
+    "best_mse_B": Infinity,
+    "amoumt_of_trials": 1,
+    "duration_seconds": 25.369695,
+    "start_time": "2025-02-22T19:41:44.613512",
+    "end_time": "2025-02-22T19:42:09.983207"
+}

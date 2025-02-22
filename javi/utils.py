@@ -96,6 +96,9 @@ def podar(x,q1,q2,cuantiles=None):
 
 def convertir_data(data, T, cuantiles, snn_input_layer_neurons_size, is_train=False, device='cpu'):
     # Move cuantiles to GPU
+    print('convertir_data')
+    print(device)
+    
     cuantiles = cuantiles.to(device)
     
     # Convert series to GPU tensor
@@ -134,6 +137,9 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0, device='cpu'):
 
 def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, device='cpu'):
     # Create the network
+    print('crear_red')
+    print(device)
+    
     network = Network(dt=1.0, learning=True).to(device)
     
     # Create layers and move to GPU
@@ -221,6 +227,8 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
 def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, device='cpu'):
     sp0, sp1, sp_conv = [], [], []
     
+    print('ejecutar_red')
+    print(device)
     j = 1
     for i in secuencias:
         print(f'Ejecutando secuencia {j}')
@@ -263,11 +271,11 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
     return [sp0, sp1, sp_conv, network]
 
 
-def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,date_starting_trials):
+def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size):
    
     # Create directory structure
     
-    base_path = f'resultados/{date_starting_trials}/trial_{n_trial}'
+    base_path = f'resultados/{dataset_name}/n_{snn_process_layer_neurons_size}/{date_starting_trials}/trial_{n_trial}'
     os.makedirs(base_path, exist_ok=True)
 
     # Save spikes
