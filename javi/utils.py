@@ -9,6 +9,8 @@ from sklearn.metrics import mean_squared_error
 from datetime import datetime
 import os
 import json
+import wandb
+from wandb_utils import log_evaluation_results
 
 
 def reset_voltajes(network, device='cpu'):
@@ -320,7 +322,9 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
 
     # Reshape/flatten spikes to 1D if needed
     spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
-
+    # Save spikes
+    np.savetxt(f'{base_path}/spikes_1d', spikes_1d, delimiter=',')
+    
     # Create DataFrame with 1D arrays
     results_df = pd.DataFrame({
         'timestamp': timestamps,
@@ -333,6 +337,18 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
                      index=False,
                      float_format='%.6f')
 
+    # Calculate MSE for layer B
+    ground_truth_labels = data_test['label'].astype(float).to_numpy()
+    ground_truth_labels = np.nan_to_num(ground_truth_labels, nan=0.0)
+
+    predicted_anomalies = spikes_1d.astype(float)
+    predicted_anomalies = np.nan_to_num(predicted_anomalies, nan=0.0)
+
+    mse_B = mean_squared_error(ground_truth_labels, predicted_anomalies)
+    # print("MSE capa B:", mse_B)
+    # with open(f'{base_path}/MSE_capa_B', 'w') as n2:
+    #     n2.write(f'{mse_B}\n')
+    
     # Only process convolutional layer results if spikes_conv exists
     mse_C = None
     if spikes_conv is not None:
@@ -351,7 +367,7 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
         # Calculate MSE for conv layer
         spikes_conv_1d = spikes_conv_1d.astype(float)
         spikes_conv_1d = np.nan_to_num(spikes_conv_1d, nan=0.0)
-        mse_C = mean_squared_error(y_true, spikes_conv_1d)    
+        mse_C = mean_squared_error(ground_truth_labels, spikes_conv_1d)    
         print("MSE capa C:", mse_C)
         with open(f'{base_path}/MSE_capa_C', 'w') as n2:
             n2.write(f'{mse_C}\n')
@@ -362,17 +378,7 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
     # with open(f'{base_path}/n2', 'w') as n2:
     #     n2.write(f'{n}\n')
 
-    # Calculate MSE for layer B
-    y_true = data_test['label'].astype(float).to_numpy()
-    y_true = np.nan_to_num(y_true, nan=0.0)
-
-    spikes_1d = spikes_1d.astype(float)
-    spikes_1d = np.nan_to_num(spikes_1d, nan=0.0)
-
-    mse_B = mean_squared_error(y_true, spikes_1d)
-    # print("MSE capa B:", mse_B)
-    # with open(f'{base_path}/MSE_capa_B', 'w') as n2:
-    #     n2.write(f'{mse_B}\n')
+   
         
     info = {
         "nu1": trial.params['nu1'],
@@ -386,5 +392,29 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
     }
     with open(f"{base_path}/config.json", "w") as f:
         json.dump(info, f, indent=4)
+        
+    # Log results to wandb if a run is active
+    if wandb.run is not None:
+        log_evaluation_results(wandb.run, mse_B, mse_C, dataset_name)
+        
+        # Create and log confusion matrix or other visualizations
+        if mse_C is not None:
+            wandb.log({
+                "spike_comparison": wandb.plot.line_series(
+                    xs=list(range(len(predicted_anomalies))), 
+                    ys=[predicted_anomalies, spikes_conv_1d, ground_truth_labels],
+                    keys=["Layer B", "Layer C", "Ground Truth"],
+                    title="Spike Response Comparison"
+                )
+            })
+        else:
+            wandb.log({
+                "spike_comparison": wandb.plot.line_series(
+                    xs=list(range(len(predicted_anomalies))), 
+                    ys=[predicted_anomalies, ground_truth_labels],
+                    keys=["Layer B", "Ground Truth"],
+                    title="Spike Response Comparison"
+                )
+            })
         
     return mse_B, mse_C
