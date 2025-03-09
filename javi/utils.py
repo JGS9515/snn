@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from sklearn.metrics import mean_squared_error
 from datetime import datetime
 import os
+import json
 
 
 def reset_voltajes(network, device='cpu'):
@@ -135,7 +136,7 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0, device='cpu'):
     return gaussian.view(1, 1, -1)  # Shape for 1D convolution
 
 
-def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, device='cpu'):
+def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, use_conv_layer=True, device='cpu'):
     # Create the network
     print('crear_red')
     print(device)
@@ -145,17 +146,16 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     # Create layers and move to GPU
     source_layer = Input(n=snn_input_layer_neurons_size, traces=True).to(device)
     target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
-    conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
     
     network.add_layer(layer=source_layer, name="A")
     network.add_layer(layer=target_layer, name="B")
-    network.add_layer(layer=conv_layer, name="C")
     
-    # Create Gaussian kernel on GPU
-    kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0,device=device).repeat(n, 1, 1)
-    kernel_size=5
-    sigma=1.0
-    # Create connections and ensure weights are on GPU
+    conv_layer = None
+    if use_conv_layer:
+        conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
+        network.add_layer(layer=conv_layer, name="C")
+    
+    # Create forward and recurrent connections...
     forward_connection = Connection(
         source=source_layer,
         target=target_layer,
@@ -176,26 +176,30 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     
     network.add_connection(connection=recurrent_connection, source="B", target="B")
     
-    # Conexión convolucional B->C con matriz Toeplitz
-    weights = torch.zeros(n, n, device=device)  # Create tensor directly on GPU
-    center = kernel_size // 2
-    for i in range(n):
-        start = max(0, i - center)
-        end = min(n, i + center + 1)
-        k_start = max(0, center - i)
-        k_end = kernel_size - max(0, i + center + 1 - n)
-        weights[i, start:end] = kernel[0,0,k_start:k_end]
-    
-    conv_connection = Connection(
-        source=target_layer,
-        target=conv_layer,
-        w=weights,  # Weights are already on GPU
-        update_rule=PostPre,
-        nu=nu2,
-        norm=0.5 * kernel_size
-    ).to(device)  # Ensure connection is on GPU
-    
-    network.add_connection(conv_connection, "B", "C")
+    # Add convolutional layer and connection only if use_conv_layer is True
+    if use_conv_layer:
+        kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0, device=device).repeat(n, 1, 1)
+        kernel_size = 5
+        
+        weights = torch.zeros(n, n, device=device)
+        center = kernel_size // 2
+        for i in range(n):
+            start = max(0, i - center)
+            end = min(n, i + center + 1)
+            k_start = max(0, center - i)
+            k_end = kernel_size - max(0, i + center + 1 - n)
+            weights[i, start:end] = kernel[0,0,k_start:k_end]
+        
+        conv_connection = Connection(
+            source=target_layer,
+            target=conv_layer,
+            w=weights,
+            update_rule=PostPre,
+            nu=nu2,
+            norm=0.5 * kernel_size
+        ).to(device)
+        
+        network.add_connection(conv_connection, "B", "C")
     
     #Creamos los monitores. Sirven para registrar los spikes y voltajes:
     #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
@@ -211,20 +215,23 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
         state_vars=("s", "v"),  #Registramos spikes y voltajes, por si nos interesa lo segundo también.
         time=T,
     )
-    conv_monitor = Monitor(
-        obj=conv_layer,
-        state_vars=("s", "v"),
-        time=T,
-    )
     
     network.add_monitor(monitor=source_monitor, name="X")
     network.add_monitor(monitor=target_monitor, name="Y")
-    network.add_monitor(monitor=conv_monitor, name="Conv_mon")
+    
+    conv_monitor = None
+    if use_conv_layer:
+        conv_monitor = Monitor(
+            obj=conv_layer,
+            state_vars=("s", "v"),
+            time=T,
+        )
+        network.add_monitor(monitor=conv_monitor, name="Conv_mon")
     
     return [network, source_monitor, target_monitor, conv_monitor]
 
 
-def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, device='cpu'):
+def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, use_conv_layer=True, device='cpu'):
     sp0, sp1, sp_conv = [], [], []
     
     print('ejecutar_red')
@@ -234,39 +241,37 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
         print(f'Ejecutando secuencia {j}')
         j += 1
         
-        # Move input to GPU and ensure correct shape
         inputs = {'A': i.T.to(device)}
-        
-        # Run network
         network.run(inputs=inputs, time=T)
         
-        # Get spikes and ensure they're on GPU
         spikes = {
             "X": source_monitor.get("s").to(device),
-            "B": target_monitor.get("s").to(device),
-            "C": conv_monitor.get("s").to(device)
+            "B": target_monitor.get("s").to(device)
         }
         
-        # Process B layer spikes
-        b_spikes = spikes["B"].float()  # Already on GPU
+        if use_conv_layer and conv_monitor is not None:
+            spikes["C"] = conv_monitor.get("s").to(device)
+        
+        b_spikes = spikes["B"].float()
         b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)
         
-        # Create and apply Gaussian kernel (already on GPU from creation)
-        kernel = create_gaussian_kernel(device=device)
-        conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
-        
-        # Store results - move to CPU only when converting to numpy
         sp0.append(spikes['X'].cpu().sum(axis=2))
         sp1.append(spikes['B'].cpu().sum(axis=2))
-        sp_conv.append(conv_spikes.cpu().squeeze())
         
-        # Reset network voltages
+        if use_conv_layer:
+            kernel = create_gaussian_kernel(device=device)
+            conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
+            sp_conv.append(conv_spikes.cpu().squeeze())
+        
         network = reset_voltajes(network, device=device)
     
-    # Concatenate results and convert to numpy arrays
     sp0 = torch.cat(sp0).cpu().detach().numpy()
     sp1 = torch.cat(sp1).cpu().detach().numpy()
-    sp_conv = torch.cat(sp_conv).cpu().detach().numpy()
+    
+    if use_conv_layer:
+        sp_conv = torch.cat(sp_conv).cpu().detach().numpy()
+    else:
+        sp_conv = None
     
     return [sp0, sp1, sp_conv, network]
 
