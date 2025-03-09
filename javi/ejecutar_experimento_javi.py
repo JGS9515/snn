@@ -1,11 +1,11 @@
 import torch, pandas as pd, numpy as np, os
-from bindsnet.network import Network
-from bindsnet.network.nodes import Input, LIFNodes,AdaptiveLIFNodes
-from bindsnet.network.topology import Connection
-from bindsnet.network.monitors import Monitor
-from bindsnet.analysis.plotting import plot_spikes, plot_voltages
-from bindsnet.learning import PostPre
-import torch.nn.functional as F
+# from bindsnet.network import Network
+# from bindsnet.network.nodes import Input, LIFNodes,AdaptiveLIFNodes
+# from bindsnet.network.topology import Connection
+# from bindsnet.network.monitors import Monitor
+# from bindsnet.analysis.plotting import plot_spikes, plot_voltages
+# from bindsnet.learning import PostPre
+# import torch.nn.functional as F
 
 import argparse
 import json
@@ -20,7 +20,7 @@ date_starting_trials = datetime.now().strftime('%Y_%m_%d-%H_%M')  # Format inclu
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"Using device: {device}")
 
-def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial):
+def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial, trial=None):
 
     #Lectura de datos:
     #Esperamos que estos datos tengan las columnas 'label' y 'value'.
@@ -59,7 +59,7 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial)
     snn_input_layer_neurons_size=len(cuantiles)-1
 
     #Crea la red.
-    network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T,device=device)
+    network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T,use_conv_layer=use_conv_layer,device=device)
 
     #Dividimos el train en secuencias:
     data_train=dividir(data_train,T)
@@ -75,7 +75,7 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial)
     for s in data_train:
         secuencias2train=convertir_data(s,T,cuantiles,snn_input_layer_neurons_size,is_train=True,device=device)
         print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
-        spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T,device=device)
+        spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T,use_conv_layer=use_conv_layer,device=device)
         #Reseteamos los voltajes:
         network=reset_voltajes(network)
 
@@ -84,9 +84,9 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial)
     secuencias2test=convertir_data(data_test,T,cuantiles,snn_input_layer_neurons_size,is_train=False,device=device)
 
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
-    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,device=device)
+    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,use_conv_layer=use_conv_layer,device=device)
 
-    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size)
+    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size,trial=trial)
     return mse_B, mse_C
 
 def objective(trial):
@@ -130,7 +130,7 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment with GPU enabled by default
-        mse_B, mse_C = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1)
+        mse_B, mse_C = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1,trial=trial)
         
         return mse_B
     except Exception as e:
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
     dataset_name=path.split('\\')[1]
     snn_process_layer_neurons_size=100
+    use_conv_layer=False
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
     parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
@@ -174,6 +175,7 @@ if __name__ == "__main__":
         "best_trial": best_trial_number+1,
         "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
         "device": str(device),  # Convert device to string
+        "use_conv_layer": use_conv_layer,
         "best_mse_B": study.best_value,
         "amoumt_of_trials": args.n_trials,
         "duration_seconds": duration.total_seconds(),

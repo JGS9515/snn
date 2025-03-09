@@ -271,16 +271,17 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
     return [sp0, sp1, sp_conv, network]
 
 
-def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size):
-   
+def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial, date_starting_trials, dataset_name, snn_process_layer_neurons_size, trial):
     # Create directory structure
-    
     base_path = f'resultados/{dataset_name}/n_{snn_process_layer_neurons_size}/{date_starting_trials}/trial_{n_trial}'
     os.makedirs(base_path, exist_ok=True)
 
     # Save spikes
     np.savetxt(f'{base_path}/spikes', spikes, delimiter=',')
-    np.savetxt(f'{base_path}/spikes_conv', spikes_conv, delimiter=',')
+    
+    # Only save spikes_conv if it exists
+    if spikes_conv is not None:
+        np.savetxt(f'{base_path}/spikes_conv', spikes_conv, delimiter=',')
 
     # Convert and save labels - handle NA values properly
     labels = data_test['label'].replace([np.inf, -np.inf], np.nan)
@@ -327,25 +328,36 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
                      index=False,
                      float_format='%.6f')
 
-    spikes_conv_1d = spikes_conv.sum(axis=1) if len(spikes_conv.shape) > 1 else spikes_conv
+    # Only process convolutional layer results if spikes_conv exists
+    mse_C = None
+    if spikes_conv is not None:
+        spikes_conv_1d = spikes_conv.sum(axis=1) if len(spikes_conv.shape) > 1 else spikes_conv
 
-    results_conv_df = pd.DataFrame({
-        'timestamp': timestamps,
-        'value': values,
-        'label': spikes_conv_1d
-    })
+        results_conv_df = pd.DataFrame({
+            'timestamp': timestamps,
+            'value': values,
+            'label': spikes_conv_1d
+        })
 
-    results_conv_df.to_csv(f'{base_path}/results_conv.csv', 
-                          index=False,
-                          float_format='%.6f')
+        results_conv_df.to_csv(f'{base_path}/results_conv.csv', 
+                             index=False,
+                             float_format='%.6f')
 
-    with open(f'{base_path}/n1', 'w') as n1:
-        n1.write(f'{snn_input_layer_neurons_size}\n')
+        # Calculate MSE for conv layer
+        spikes_conv_1d = spikes_conv_1d.astype(float)
+        spikes_conv_1d = np.nan_to_num(spikes_conv_1d, nan=0.0)
+        mse_C = mean_squared_error(y_true, spikes_conv_1d)    
+        print("MSE capa C:", mse_C)
+        with open(f'{base_path}/MSE_capa_C', 'w') as n2:
+            n2.write(f'{mse_C}\n')
 
-    with open(f'{base_path}/n2', 'w') as n2:
-        n2.write(f'{n}\n')
+    # with open(f'{base_path}/n1', 'w') as n1:
+    #     n1.write(f'{snn_input_layer_neurons_size}\n')
 
-    # Calculate MSE scores
+    # with open(f'{base_path}/n2', 'w') as n2:
+    #     n2.write(f'{n}\n')
+
+    # Calculate MSE for layer B
     y_true = data_test['label'].astype(float).to_numpy()
     y_true = np.nan_to_num(y_true, nan=0.0)
 
@@ -353,17 +365,21 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
     spikes_1d = np.nan_to_num(spikes_1d, nan=0.0)
 
     mse_B = mean_squared_error(y_true, spikes_1d)
-    print("MSE capa B:", mse_B)
-    with open(f'{base_path}/MSE_capa_B', 'w') as n2:
-        n2.write(f'{mse_B}\n')
-
-    # Repetir el proceso para spikes_conv_1d si es necesario
-    spikes_conv_1d = spikes_conv_1d.astype(float)
-    spikes_conv_1d = np.nan_to_num(spikes_conv_1d, nan=0.0)
-
-    mse_C = mean_squared_error(y_true, spikes_conv_1d)    
-    print("MSE capa C:", mse_C)
-    with open(f'{base_path}/MSE_capa_C', 'w') as n2:
-        n2.write(f'{mse_C}\n')
+    # print("MSE capa B:", mse_B)
+    # with open(f'{base_path}/MSE_capa_B', 'w') as n2:
+    #     n2.write(f'{mse_B}\n')
+        
+    info = {
+        "nu1": trial.params['nu1'],
+        "nu2": trial.params['nu2'],
+        "threshold": trial.params['threshold'],
+        "decay": trial.params['decay'],
+        "mse_B": mse_B,
+        "mse_C": mse_C,
+        "ssn_input_layer_neurons_size": snn_input_layer_neurons_size,
+        "snn_process_layer_neurons_size": snn_process_layer_neurons_size,    
+    }
+    with open(f"{base_path}/config.json", "w") as f:
+        json.dump(info, f, indent=4)
         
     return mse_B, mse_C
