@@ -10,6 +10,8 @@ import torch, pandas as pd, numpy as np, os
 import argparse
 import json
 import optuna
+import wandb
+from wandb_utils import *
 
 import numpy as np
 
@@ -156,31 +158,58 @@ if __name__ == "__main__":
     device = torch.device("cuda" if (args.device == "gpu") and torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     study = optuna.create_study(direction='minimize')
-    study.optimize(objective, n_trials=args.n_trials)
+    parent_wandb_run = init_wandb(
+        config={
+            "dataset": dataset_name,
+            "n_trials": args.n_trials,
+            "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
+            "use_conv_layer": use_conv_layer,
+            "device": str(device),
+            "date_starting_trials": date_starting_trials
+        },
+        project_name="TFM",
+        entity="jgs00069-university-of-ja-n",
+        name=f"study-{dataset_name}-n{snn_process_layer_neurons_size}-{date_starting_trials}"
+    )
+    
+    try:
+        study.optimize(objective, n_trials=args.n_trials)
 
-    end_time = datetime.now()  # Add this line to track end time
-    duration = end_time - start_time  # Calculate duration
+        end_time = datetime.now()  # Add this line to track end time
+        duration = end_time - start_time  # Calculate duration
 
-    print('Mejor configuración encontrada:')
-    print(study.best_params)
-    print(f'Mejor MSE_B: {study.best_value}')
-    print(f'Duración total: {duration}')
+        print('Mejor configuración encontrada:')
+        print(study.best_params)
+        print(f'Mejor MSE_B: {study.best_value}')
+        print(f'Duración total: {duration}')
 
-    # Guardar la mejor configuración
-    base_path = f'resultados/{dataset_name}/n_{snn_process_layer_neurons_size}/{date_starting_trials}'
-    os.makedirs(base_path, exist_ok=True)
-    best_trial_number = study.best_trial.number
-    results = {
-        "best_params": study.best_params,
-        "best_trial": best_trial_number+1,
-        "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
-        "device": str(device),  # Convert device to string
-        "use_conv_layer": use_conv_layer,
-        "best_mse_B": study.best_value,
-        "amoumt_of_trials": args.n_trials,
-        "duration_seconds": duration.total_seconds(),
-        "start_time": start_time.isoformat(),
-        "end_time": end_time.isoformat()
-    }
-    with open(f"{base_path}/best_config.json", "w") as f:
-        json.dump(results, f, indent=4)
+        # Guardar la mejor configuración
+        base_path = f'resultados/{dataset_name}/n_{snn_process_layer_neurons_size}/{date_starting_trials}'
+        os.makedirs(base_path, exist_ok=True)
+        best_trial_number = study.best_trial.number
+        results = {
+            "best_params": study.best_params,
+            "best_trial": best_trial_number+1,
+            "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
+            "device": str(device),  # Convert device to string
+            "use_conv_layer": use_conv_layer,
+            "best_mse_B": study.best_value,
+            "amoumt_of_trials": args.n_trials,
+            "duration_seconds": duration.total_seconds(),
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat()
+        }
+        with open(f"{base_path}/best_config.json", "w") as f:
+            json.dump(results, f, indent=4)
+            
+        if parent_wandb_run:
+            parent_wandb_run.log({
+                "study/best_mse_B": study.best_value,
+                "study/best_trial": best_trial_number+1,
+                "study/duration_seconds": duration.total_seconds(),
+                **{f"study/best_{k}": v for k, v in study.best_params.items()}
+            })
+    finally:
+        # Finish the parent wandb run
+        if parent_wandb_run:
+            finish_wandb_run()
