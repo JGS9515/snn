@@ -88,8 +88,8 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial,
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
     spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,use_conv_layer=use_conv_layer,device=device)
 
-    mse_B, mse_C = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size,trial=trial)
-    return mse_B, mse_C
+    mse_B, mse_C, f1, precision, recall  = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size,trial=trial)
+    return mse_B, mse_C, f1, precision, recall
 
 def objective(trial):
 
@@ -99,6 +99,10 @@ def objective(trial):
         'nu2': trial.suggest_float('nu2', -0.5, 0.5),
         'threshold': trial.suggest_float('threshold', -65, -50),
         'decay': trial.suggest_float('decay', 80, 150),
+        # "nu1": 0.06762360437175895,
+        # "nu2": 0.49640254493667246,
+        # "threshold": -45.0,
+        # "decay": 95.24046377474235
     }
     print(f"config: {config}")
 
@@ -132,9 +136,9 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment with GPU enabled by default
-        mse_B, mse_C = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1,trial=trial)
+        mse_B, mse_C, f1, precision, recall = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1,trial=trial)
         
-        return mse_B
+        return -f1
     except Exception as e:
         print(f"Trial failed with error: {e}")
         # Return a very low score for failed trials
@@ -149,8 +153,8 @@ if __name__ == "__main__":
     snn_process_layer_neurons_size=100
     use_conv_layer=False
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
-    parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
-    parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
+    # parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
+    parser.add_argument('-n', '--n_trials', type=int, default=50, help='Número de trials para Optuna')
     parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='cpu', help='Device to use (cpu/gpu)')
     args = parser.parse_args()
 
@@ -193,7 +197,7 @@ if __name__ == "__main__":
             "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
             "device": str(device),  # Convert device to string
             "use_conv_layer": use_conv_layer,
-            "best_mse_B": study.best_value,
+            "best_f1": -study.best_value,
             "amoumt_of_trials": args.n_trials,
             "duration_seconds": duration.total_seconds(),
             "start_time": start_time.isoformat(),

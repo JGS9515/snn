@@ -5,12 +5,13 @@ from bindsnet.network.monitors import Monitor
 import torch, pandas as pd, numpy as np, os
 from bindsnet.learning import PostPre
 import torch.nn.functional as F
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import f1_score, mean_squared_error, precision_score, recall_score
 from datetime import datetime
 import os
 import json
 import wandb
 from wandb_utils import log_evaluation_results
+import matplotlib.pyplot as plt
 
 
 def reset_voltajes(network, device='cpu'):
@@ -161,7 +162,7 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     forward_connection = Connection(
         source=source_layer,
         target=target_layer,
-        w=(0.05 + 0.1 * torch.randn(source_layer.n, target_layer.n)).to(device),
+        w=(0.3 + 0.2 * torch.randn(source_layer.n, target_layer.n)).to(device),
         update_rule=PostPre, 
         nu=nu1
     ).to(device)
@@ -322,29 +323,53 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
 
     # Reshape/flatten spikes to 1D if needed
     spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
-    # Save spikes
-    np.savetxt(f'{base_path}/spikes_1d', spikes_1d, delimiter=',')
     
-    # Create DataFrame with 1D arrays
-    results_df = pd.DataFrame({
-        'timestamp': timestamps,
-        'value': values,
-        'label': spikes_1d
-    })
+    # Calculate ground truth
+    # ground_truth_labels = data_test['label'].astype(float).to_numpy()
+    # ground_truth_labels = np.nan_to_num(ground_truth_labels, nan=0.0)
+    
+    # # Find optimal threshold using one of the methods
+    # optimal_threshold, metrics_df = evaluate_thresholds(spikes_1d, ground_truth_labels, base_path=base_path)
+    # or
+    # optimal_threshold = find_optimal_threshold(spikes_1d, ground_truth_labels, base_path=base_path)
+    # or
+    # optimal_threshold = distribution_based_threshold(spikes_1d, ground_truth_labels, base_path=base_path)
+    
+    # Apply threshold
+    # binary_predictions = (spikes_1d > optimal_threshold).astype(float)
+    binary_predictions = (spikes_1d > 0).astype(float)
+    
+    
+    # Log the threshold used
+    print(f"Optimal threshold: {0}")
+    
+    # Save both raw spikes and binary predictions
+    np.savetxt(f'{base_path}/spikes_1d', spikes_1d, delimiter=',')
+    np.savetxt(f'{base_path}/binary_predictions', binary_predictions, delimiter=',')
+    
+    # Create DataFrame with binary predictions
+    # binary_results_df = pd.DataFrame({
+    #     'timestamp': timestamps,
+    #     'value': values,
+    #     'label': binary_predictions
+    # })
 
-    # Save to CSV with same format as original
-    results_df.to_csv(f'{base_path}/results.csv', 
-                     index=False,
-                     float_format='%.6f')
+    # # Save to CSV
+    # binary_results_df.to_csv(f'{base_path}/binary_results.csv', 
+    #                  index=False,
+    #                  float_format='%.6f')
 
     # Calculate MSE for layer B
     ground_truth_labels = data_test['label'].astype(float).to_numpy()
     ground_truth_labels = np.nan_to_num(ground_truth_labels, nan=0.0)
 
-    predicted_anomalies = spikes_1d.astype(float)
+    predicted_anomalies = binary_predictions.astype(float)
     predicted_anomalies = np.nan_to_num(predicted_anomalies, nan=0.0)
 
     mse_B = mean_squared_error(ground_truth_labels, predicted_anomalies)
+    f1 = f1_score(ground_truth_labels, predicted_anomalies)
+    precision = precision_score(ground_truth_labels, predicted_anomalies)
+    recall = recall_score(ground_truth_labels, predicted_anomalies)
     # print("MSE capa B:", mse_B)
     # with open(f'{base_path}/MSE_capa_B', 'w') as n2:
     #     n2.write(f'{mse_B}\n')
@@ -377,8 +402,6 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
 
     # with open(f'{base_path}/n2', 'w') as n2:
     #     n2.write(f'{n}\n')
-
-   
         
     info = {
         "nu1": trial.params['nu1'],
@@ -387,6 +410,9 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
         "decay": trial.params['decay'],
         "mse_B": mse_B,
         "mse_C": mse_C,
+        "f1": f1,
+        "precision": precision,
+        "recall": recall,
         "ssn_input_layer_neurons_size": snn_input_layer_neurons_size,
         "snn_process_layer_neurons_size": snn_process_layer_neurons_size,    
     }
@@ -417,4 +443,109 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
                 )
             })
         
-    return mse_B, mse_C
+    return mse_B, mse_C, f1, precision, recall
+
+
+def find_optimal_threshold(spikes_1d, ground_truth_labels, base_path=None):
+    from sklearn.metrics import roc_curve, roc_auc_score
+    
+    # Calculate ROC curve
+    fpr, tpr, thresholds = roc_curve(ground_truth_labels, spikes_1d)
+    
+    # Calculate the geometric mean of sensitivity and specificity
+    gmeans = np.sqrt(tpr * (1-fpr))
+    
+    # Find the optimal threshold
+    ix = np.argmax(gmeans)
+    optimal_threshold = thresholds[ix]
+    
+    # Plot ROC curve (optional)
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, marker='.')
+    plt.plot(fpr[ix], tpr[ix], marker='o', color='red')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'ROC Curve (Optimal Threshold = {optimal_threshold:.2f})')
+    plt.savefig(f'{base_path}/roc_curve.png')
+    
+    return optimal_threshold
+
+
+def evaluate_thresholds(spikes_1d, ground_truth_labels, thresholds=None, base_path=None):
+    from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+    
+    if thresholds is None:
+        # Generate range of potential thresholds based on data distribution
+        min_val, max_val = np.min(spikes_1d), np.max(spikes_1d)
+        thresholds = np.linspace(min_val, max_val, 50)
+    
+    results = []
+    for threshold in thresholds:
+        binary_pred = (spikes_1d > threshold).astype(float)
+        
+        # Calculate various metrics
+        precision = precision_score(ground_truth_labels, binary_pred, zero_division=0)
+        recall = recall_score(ground_truth_labels, binary_pred, zero_division=0)
+        f1 = f1_score(ground_truth_labels, binary_pred, zero_division=0)
+        accuracy = accuracy_score(ground_truth_labels, binary_pred)
+        mse = mean_squared_error(ground_truth_labels, binary_pred)
+        
+        results.append({
+            'threshold': threshold,
+            'precision': precision,
+            'recall': recall,
+            'f1': f1,
+            'accuracy': accuracy,
+            'mse': mse
+        })
+    
+    # Convert to DataFrame for easier analysis
+    results_df = pd.DataFrame(results)
+    
+    # Save metrics to CSV
+    results_df.to_csv(f'{base_path}/threshold_metrics.csv', index=False)
+    
+    # Plot metrics
+    plt.figure(figsize=(12, 8))
+    for metric in ['precision', 'recall', 'f1', 'accuracy']:
+        plt.plot(results_df['threshold'], results_df[metric], label=metric)
+    plt.xlabel('Threshold')
+    plt.ylabel('Score')
+    plt.legend()
+    plt.title('Metrics by Threshold')
+    plt.savefig(f'{base_path}/threshold_metrics.png')
+    
+    # Find optimal threshold based on F1 score
+    optimal_idx = results_df['f1'].idxmax()
+    optimal_threshold = results_df.loc[optimal_idx, 'threshold']
+    
+    return optimal_threshold, results_df
+
+
+def distribution_based_threshold(spikes_1d, ground_truth_labels, base_path=None):
+    # Separate spike values for normal vs anomalous points
+    normal_spikes = spikes_1d[ground_truth_labels == 0]
+    anomaly_spikes = spikes_1d[ground_truth_labels == 1]
+    
+    # Plot distribution
+    plt.figure(figsize=(10, 6))
+    plt.hist(normal_spikes, bins=50, alpha=0.5, label='Normal')
+    plt.hist(anomaly_spikes, bins=50, alpha=0.5, label='Anomaly')
+    plt.xlabel('Spike Count')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.title('Distribution of Spike Counts')
+    plt.savefig(f'{base_path}/spike_distribution.png')
+    
+    # Calculate statistics
+    normal_mean, normal_std = np.mean(normal_spikes), np.std(normal_spikes)
+    anomaly_mean, anomaly_std = np.mean(anomaly_spikes), np.std(anomaly_spikes)
+    
+    # Find threshold at midpoint or based on standard deviation
+    if len(anomaly_spikes) > 0:
+        threshold = (normal_mean + anomaly_mean) / 2
+    else:
+        # If no anomalies in training, use standard deviation approach
+        threshold = normal_mean + 3 * normal_std
+    
+    return threshold
