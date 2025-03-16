@@ -139,10 +139,41 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0, device='cpu'):
     return gaussian.view(1, 1, -1)  # Shape for 1D convolution
 
 
-def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, use_conv_layer=True, device='cpu'):
+# Improved function with more kernel options
+def create_kernel(kernel_type='gaussian', kernel_size=5, sigma=1.0, device='cpu'):
+    if kernel_type == 'gaussian':
+        x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
+        kernel = torch.exp(-x**2 / (2*sigma**2))
+    elif kernel_type == 'laplacian':
+        x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
+        kernel = torch.exp(-torch.abs(x) / sigma)
+    elif kernel_type == 'mexican_hat':
+        x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
+        kernel = (1 - x**2 / sigma**2) * torch.exp(-x**2 / (2*sigma**2))
+    elif kernel_type == 'box':
+        kernel = torch.ones(kernel_size, device=device)
+    else:
+        raise ValueError(f"Unknown kernel type: {kernel_type}")
+    
+    kernel = kernel / kernel.sum()  # Normalize
+    return kernel.view(1, 1, -1)  # Shape for 1D convolution
+
+
+def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, 
+              use_conv_layer=True, conv_params=None, device='cpu'):
     # Create the network
     print('crear_red')
     print(device)
+    
+    # Set default conv_params if not provided
+    if conv_params is None:
+        conv_params = {
+            'kernel_type': 'gaussian',
+            'kernel_size': 5,
+            'sigma': 1.0,
+            'norm_factor': 0.5,
+            'exc_inh_balance': 0.0  # New parameter: 0 means balanced, +ve means more excitation
+        }
     
     network = Network(dt=1.0, learning=True).to(device)
     
@@ -155,7 +186,14 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     
     conv_layer = None
     if use_conv_layer:
-        conv_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
+        # Allow different neuron model for conv layer
+        conv_layer = AdaptiveLIFNodes(
+            n=n, 
+            traces=True, 
+            thresh=umbral,
+            tc_decay=decaimiento,
+            tc_trace=20.0  # Slower trace decay for conv layer
+        ).to(device)
         network.add_layer(layer=conv_layer, name="C")
     
     # Create forward and recurrent connections...
@@ -181,11 +219,25 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     
     # Add convolutional layer and connection only if use_conv_layer is True
     if use_conv_layer:
-        kernel = create_gaussian_kernel(kernel_size=5, sigma=1.0, device=device).repeat(n, 1, 1)
-        kernel_size = 5
+        # Get kernel parameters
+        kernel_type = conv_params.get('kernel_type', 'gaussian')
+        kernel_size = int(conv_params.get('kernel_size', 5))  # Ensure kernel_size is an integer
+        sigma = float(conv_params.get('sigma', 1.0))  # Ensure sigma is a float
+        norm_factor = float(conv_params.get('norm_factor', 0.5))  # Ensure norm_factor is a float
+        exc_inh_balance = float(conv_params.get('exc_inh_balance', 0.0))  # Ensure exc_inh_balance is a float
         
+        # Create kernel
+        kernel = create_kernel(
+            kernel_type=kernel_type,
+            kernel_size=kernel_size,
+            sigma=sigma,
+            device=device
+        ).repeat(n, 1, 1)
+        
+        # Create weight matrix with the kernel
         weights = torch.zeros(n, n, device=device)
         center = kernel_size // 2
+        
         for i in range(n):
             start = max(0, i - center)
             end = min(n, i + center + 1)
@@ -193,16 +245,38 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
             k_end = kernel_size - max(0, i + center + 1 - n)
             weights[i, start:end] = kernel[0,0,k_start:k_end]
         
+        # Apply excitatory/inhibitory balance
+        if exc_inh_balance != 0:
+            # Add more excitatory or inhibitory bias based on the parameter
+            mask = torch.rand(n, n, device=device) < 0.5 + exc_inh_balance/2
+            weights = weights * (1 + 0.2 * mask.float() - 0.1)
+        
+        # Add skip connections (identity) to preserve important information
+        # This helps avoid losing critical spike patterns through convolution
+        weights = weights + 0.1 * torch.eye(n, device=device)
+        
         conv_connection = Connection(
             source=target_layer,
             target=conv_layer,
             w=weights,
             update_rule=PostPre,
             nu=nu2,
-            norm=0.5 * kernel_size
+            norm=float(norm_factor * kernel_size)  # Ensure this is a float
         ).to(device)
         
         network.add_connection(conv_connection, "B", "C")
+        
+        # Optional: Add a feedback connection from conv layer back to target layer
+        # This creates a bidirectional flow of information
+        feedback_connection = Connection(
+            source=conv_layer,
+            target=target_layer,
+            w=0.05 * torch.randn(n, n, device=device),
+            update_rule=PostPre,
+            nu=nu2 * 0.5,  # Lower learning rate for feedback
+        ).to(device)
+        
+        network.add_connection(feedback_connection, "C", "B")
     
     #Creamos los monitores. Sirven para registrar los spikes y voltajes:
     #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
@@ -234,7 +308,8 @@ def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T,
     return [network, source_monitor, target_monitor, conv_monitor]
 
 
-def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, use_conv_layer=True, device='cpu'):
+def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, 
+                use_conv_layer=True, conv_processing_type='conv', device='cpu', conv_params=None):
     sp0, sp1, sp_conv = [], [], []
     
     print('ejecutar_red')
@@ -262,8 +337,40 @@ def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monit
         sp1.append(spikes['B'].cpu().sum(axis=2))
         
         if use_conv_layer:
-            kernel = create_gaussian_kernel(device=device)
-            conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
+            # Set default conv_params if not provided
+            if conv_params is None:
+                conv_params = {
+                    'kernel_type': 'gaussian',
+                    'kernel_size': 5,
+                    'sigma': 1.0
+                }
+            
+            # Different types of post-processing for the convolutional layer
+            if conv_processing_type == 'conv':
+                # Standard convolution with proper parameters
+                kernel = create_kernel(
+                    kernel_type=conv_params.get('kernel_type', 'gaussian'),
+                    kernel_size=int(conv_params.get('kernel_size', 5)),
+                    sigma=float(conv_params.get('sigma', 1.0)),
+                    device=device
+                )
+                conv_spikes = F.conv1d(b_spikes_sum, kernel, padding='same')
+            elif conv_processing_type == 'direct':
+                # Just use the spikes directly
+                conv_spikes = spikes["C"].float().sum(dim=2).transpose(0, 1)
+            elif conv_processing_type == 'weighted_sum':
+                # Weighted sum of both layers
+                b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)
+                c_spikes_sum = spikes["C"].float().sum(dim=2).transpose(0, 1)
+                conv_spikes = 0.3 * b_spikes_sum + 0.7 * c_spikes_sum
+            elif conv_processing_type == 'max':
+                # Take maximum of both layers
+                b_spikes_sum = b_spikes.sum(dim=2).transpose(0, 1)
+                c_spikes_sum = spikes["C"].float().sum(dim=2).transpose(0, 1)
+                conv_spikes = torch.maximum(b_spikes_sum, c_spikes_sum)
+            else:
+                raise ValueError(f"Unknown conv processing type: {conv_processing_type}")
+                
             sp_conv.append(conv_spikes.cpu().squeeze())
         
         network = reset_voltajes(network, device=device)
