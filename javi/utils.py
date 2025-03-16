@@ -428,114 +428,133 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
                      index=False,
                      float_format='%.6f')
 
-    # Reshape/flatten spikes to 1D if needed
-    spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
-    
-    # Calculate ground truth
-    # ground_truth_labels = data_test['label'].astype(float).to_numpy()
-    # ground_truth_labels = np.nan_to_num(ground_truth_labels, nan=0.0)
-    
-    # # Find optimal threshold using one of the methods
-    # optimal_threshold, metrics_df = evaluate_thresholds(spikes_1d, ground_truth_labels, base_path=base_path)
-    # or
-    # optimal_threshold = find_optimal_threshold(spikes_1d, ground_truth_labels, base_path=base_path)
-    # or
-    # optimal_threshold = distribution_based_threshold(spikes_1d, ground_truth_labels, base_path=base_path)
-    
-    # Apply threshold
-    # binary_predictions = (spikes_1d > optimal_threshold).astype(float)
-    binary_predictions = (spikes_1d > 0).astype(float)
-    
-    
-    # Log the threshold used
-    print(f"Optimal threshold: {0}")
-    
-    # Save both raw spikes and binary predictions
-    np.savetxt(f'{base_path}/spikes_1d', spikes_1d, delimiter=',')
-    np.savetxt(f'{base_path}/binary_predictions', binary_predictions, delimiter=',')
-    
-    # Create DataFrame with binary predictions
-    # binary_results_df = pd.DataFrame({
-    #     'timestamp': timestamps,
-    #     'value': values,
-    #     'label': binary_predictions
-    # })
-
-    # # Save to CSV
-    # binary_results_df.to_csv(f'{base_path}/binary_results.csv', 
-    #                  index=False,
-    #                  float_format='%.6f')
-
-    # Calculate MSE for layer B
+    # Process ground truth labels
     ground_truth_labels = data_test['label'].astype(float).to_numpy()
     ground_truth_labels = np.nan_to_num(ground_truth_labels, nan=0.0)
 
-    predicted_anomalies = binary_predictions.astype(float)
-    predicted_anomalies = np.nan_to_num(predicted_anomalies, nan=0.0)
-
-    mse_B = mean_squared_error(ground_truth_labels, predicted_anomalies)
-    f1 = f1_score(ground_truth_labels, predicted_anomalies)
-    precision = precision_score(ground_truth_labels, predicted_anomalies)
-    recall = recall_score(ground_truth_labels, predicted_anomalies)
-    # print("MSE capa B:", mse_B)
-    # with open(f'{base_path}/MSE_capa_B', 'w') as n2:
-    #     n2.write(f'{mse_B}\n')
+    # Process layer B spikes
+    spikes_1d = spikes.sum(axis=1) if len(spikes.shape) > 1 else spikes
+    binary_predictions_B = (spikes_1d > 0).astype(float)
+    predicted_anomalies_B = np.nan_to_num(binary_predictions_B, nan=0.0)
     
-    # Only process convolutional layer results if spikes_conv exists
-    mse_C = None
+    # Calculate metrics for layer B
+    mse_B = mean_squared_error(ground_truth_labels, predicted_anomalies_B)
+    f1_B = f1_score(ground_truth_labels, predicted_anomalies_B)
+    precision_B = precision_score(ground_truth_labels, predicted_anomalies_B)
+    recall_B = recall_score(ground_truth_labels, predicted_anomalies_B)
+    
+    # Save binary predictions for layer B
+    np.savetxt(f'{base_path}/spikes_1d_B', spikes_1d, delimiter=',')
+    np.savetxt(f'{base_path}/binary_predictions_B', binary_predictions_B, delimiter=',')
+    
+    # Initialize conv layer metrics as None
+    mse_C, f1_C, precision_C, recall_C = None, None, None, None
+    
+    # Process convolutional layer results if available
     if spikes_conv is not None:
+        # Process layer C spikes in the same way as layer B
         spikes_conv_1d = spikes_conv.sum(axis=1) if len(spikes_conv.shape) > 1 else spikes_conv
-
+        binary_predictions_C = (spikes_conv_1d > 0).astype(float)
+        predicted_anomalies_C = np.nan_to_num(binary_predictions_C, nan=0.0)
+        
+        # Calculate metrics for layer C
+        mse_C = mean_squared_error(ground_truth_labels, predicted_anomalies_C)
+        f1_C = f1_score(ground_truth_labels, predicted_anomalies_C)
+        precision_C = precision_score(ground_truth_labels, predicted_anomalies_C)
+        recall_C = recall_score(ground_truth_labels, predicted_anomalies_C)
+        
+        # Save binary predictions for layer C
+        np.savetxt(f'{base_path}/spikes_1d_C', spikes_conv_1d, delimiter=',')
+        np.savetxt(f'{base_path}/binary_predictions_C', binary_predictions_C, delimiter=',')
+        
+        # Create DataFrame with convolutional layer results
         results_conv_df = pd.DataFrame({
             'timestamp': timestamps,
             'value': values,
             'label': spikes_conv_1d
         })
-
+        
+        # Save to CSV
         results_conv_df.to_csv(f'{base_path}/results_conv.csv', 
                              index=False,
                              float_format='%.6f')
-
-        # Calculate MSE for conv layer
-        spikes_conv_1d = spikes_conv_1d.astype(float)
-        spikes_conv_1d = np.nan_to_num(spikes_conv_1d, nan=0.0)
-        mse_C = mean_squared_error(ground_truth_labels, spikes_conv_1d)    
-        print("MSE capa C:", mse_C)
-        with open(f'{base_path}/MSE_capa_C', 'w') as n2:
-            n2.write(f'{mse_C}\n')
-
-    # with open(f'{base_path}/n1', 'w') as n1:
-    #     n1.write(f'{snn_input_layer_neurons_size}\n')
-
-    # with open(f'{base_path}/n2', 'w') as n2:
-    #     n2.write(f'{n}\n')
         
+        print("MSE capa C:", mse_C)
+        print("F1 capa C:", f1_C)
+        print("Precision capa C:", precision_C)
+        print("Recall capa C:", recall_C)
+        
+        # Save metrics to files
+        with open(f'{base_path}/MSE_capa_C', 'w') as f:
+            f.write(f'{mse_C}\n')
+        with open(f'{base_path}/F1_capa_C', 'w') as f:
+            f.write(f'{f1_C}\n')
+        with open(f'{base_path}/Precision_capa_C', 'w') as f:
+            f.write(f'{precision_C}\n')
+        with open(f'{base_path}/Recall_capa_C', 'w') as f:
+            f.write(f'{recall_C}\n')
+    
+    # Save metrics for layer B to files
+    print("MSE capa B:", mse_B)
+    print("F1 capa B:", f1_B)
+    print("Precision capa B:", precision_B)
+    print("Recall capa B:", recall_B)
+    
+    with open(f'{base_path}/MSE_capa_B', 'w') as f:
+        f.write(f'{mse_B}\n')
+    with open(f'{base_path}/F1_capa_B', 'w') as f:
+        f.write(f'{f1_B}\n')
+    with open(f'{base_path}/Precision_capa_B', 'w') as f:
+        f.write(f'{precision_B}\n')
+    with open(f'{base_path}/Recall_capa_B', 'w') as f:
+        f.write(f'{recall_B}\n')
+        
+    # Create config JSON with all metrics
     info = {
         "nu1": trial.params['nu1'],
         "nu2": trial.params['nu2'],
         "threshold": trial.params['threshold'],
         "decay": trial.params['decay'],
         "mse_B": mse_B,
+        "f1_B": f1_B,
+        "precision_B": precision_B,
+        "recall_B": recall_B,
         "mse_C": mse_C,
-        "f1": f1,
-        "precision": precision,
-        "recall": recall,
+        "f1_C": f1_C,
+        "precision_C": precision_C,
+        "recall_C": recall_C,
         "ssn_input_layer_neurons_size": snn_input_layer_neurons_size,
         "snn_process_layer_neurons_size": snn_process_layer_neurons_size,    
     }
+    
     with open(f"{base_path}/config.json", "w") as f:
         json.dump(info, f, indent=4)
         
     # Log results to wandb if a run is active
     if wandb.run is not None:
-        log_evaluation_results(wandb.run, mse_B, mse_C, dataset_name)
+        wandb_metrics = {
+            "mse_B": mse_B,
+            "f1_B": f1_B,
+            "precision_B": precision_B,
+            "recall_B": recall_B
+        }
         
-        # Create and log confusion matrix or other visualizations
+        if mse_C is not None:
+            wandb_metrics.update({
+                "mse_C": mse_C,
+                "f1_C": f1_C, 
+                "precision_C": precision_C,
+                "recall_C": recall_C
+            })
+            
+        wandb.log(wandb_metrics)
+        
+        # Create and log spike comparison visualization
         if mse_C is not None:
             wandb.log({
                 "spike_comparison": wandb.plot.line_series(
-                    xs=list(range(len(predicted_anomalies))), 
-                    ys=[predicted_anomalies, spikes_conv_1d, ground_truth_labels],
+                    xs=list(range(len(predicted_anomalies_B))), 
+                    ys=[predicted_anomalies_B, predicted_anomalies_C, ground_truth_labels],
                     keys=["Layer B", "Layer C", "Ground Truth"],
                     title="Spike Response Comparison"
                 )
@@ -543,14 +562,15 @@ def guardar_resultados(spikes, spikes_conv, data_test, n, snn_input_layer_neuron
         else:
             wandb.log({
                 "spike_comparison": wandb.plot.line_series(
-                    xs=list(range(len(predicted_anomalies))), 
-                    ys=[predicted_anomalies, ground_truth_labels],
+                    xs=list(range(len(predicted_anomalies_B))), 
+                    ys=[predicted_anomalies_B, ground_truth_labels],
                     keys=["Layer B", "Ground Truth"],
                     title="Spike Response Comparison"
                 )
             })
-        
-    return mse_B, mse_C, f1, precision, recall
+    
+    # Return metrics for both layers
+    return mse_B, mse_C, f1_B, precision_B, recall_B, f1_C, precision_C, recall_C
 
 
 def find_optimal_threshold(spikes_1d, ground_truth_labels, base_path=None):
