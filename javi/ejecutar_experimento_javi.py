@@ -22,7 +22,8 @@ date_starting_trials = datetime.now().strftime('%Y_%m_%d-%H_%M')  # Format inclu
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"Using device: {device}")
 
-def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial, trial=None):
+def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial, 
+               conv_params=None, conv_processing_type='weighted_sum', trial=None):
 
     #Lectura de datos:
     #Esperamos que estos datos tengan las columnas 'label' y 'value'.
@@ -61,7 +62,10 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial,
     snn_input_layer_neurons_size=len(cuantiles)-1
 
     #Crea la red.
-    network, source_monitor, target_monitor, conv_monitor = crear_red(snn_input_layer_neurons_size,decay,threshold,nu1,nu2,n,T,use_conv_layer=use_conv_layer,device=device)
+    network, source_monitor, target_monitor, conv_monitor = crear_red(
+        snn_input_layer_neurons_size, decay, threshold, nu1, nu2, n, T, 
+        use_conv_layer=use_conv_layer, conv_params=conv_params, device=device
+    )
 
     #Dividimos el train en secuencias:
     data_train=dividir(data_train,T)
@@ -77,7 +81,12 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial,
     for s in data_train:
         secuencias2train=convertir_data(s,T,cuantiles,snn_input_layer_neurons_size,is_train=True,device=device)
         print(f'Longitud de dataset de entrenamiento: {len(secuencias2train)}')
-        spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2train,network,source_monitor,target_monitor,conv_monitor,T,use_conv_layer=use_conv_layer,device=device)
+        spikes_input,spikes,spikes_conv,network=ejecutar_red(
+            secuencias2train, network, source_monitor, target_monitor, conv_monitor, T,
+            use_conv_layer=use_conv_layer, 
+            conv_processing_type=conv_processing_type, 
+            device=device
+        )
         #Reseteamos los voltajes:
         network=reset_voltajes(network)
 
@@ -86,7 +95,12 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial,
     secuencias2test=convertir_data(data_test,T,cuantiles,snn_input_layer_neurons_size,is_train=False,device=device)
 
     print(f'Longitud de dataset de prueba: {len(secuencias2test)}')
-    spikes_input,spikes,spikes_conv,network=ejecutar_red(secuencias2test,network,source_monitor,target_monitor,conv_monitor,T,use_conv_layer=use_conv_layer,device=device)
+    spikes_input,spikes,spikes_conv,network=ejecutar_red(
+        secuencias2test, network, source_monitor, target_monitor, conv_monitor, T,
+        use_conv_layer=use_conv_layer, 
+        conv_processing_type=conv_processing_type, 
+        device=device
+    )
 
     mse_B, mse_C, f1, precision, recall  = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size,trial=trial)
     return mse_B, mse_C, f1, precision, recall
@@ -99,11 +113,39 @@ def objective(trial):
         'nu2': trial.suggest_float('nu2', -0.5, 0.5),
         'threshold': trial.suggest_float('threshold', -65, -50),
         'decay': trial.suggest_float('decay', 80, 150),
-        # "nu1": 0.06762360437175895,
-        # "nu2": 0.49640254493667246,
-        # "threshold": -45.0,
-        # "decay": 95.24046377474235
+        # "nu1": 0.001657625626991273,
+        # "nu2": -0.3546294590908031,
+        # "threshold": -62.416319068986716,
+        # "decay": 145.29873304569423
     }
+    
+    # Only add convolutional parameters if using a conv layer
+    conv_params = None
+    conv_processing_type = 'direct'
+    
+    if use_conv_layer:
+        # Add convolutional parameters to be optimized
+        kernel_types = ['gaussian', 'laplacian', 'mexican_hat', 'box']
+        config['kernel_type'] = trial.suggest_categorical('kernel_type', kernel_types)
+        config['kernel_size'] = trial.suggest_int('kernel_size', 3, 9, step=2)  # Only odd values
+        config['sigma'] = trial.suggest_float('sigma', 0.5, 3.0)
+        config['norm_factor'] = trial.suggest_float('norm_factor', 0.1, 1.0)
+        config['exc_inh_balance'] = trial.suggest_float('exc_inh_balance', -0.3, 0.3)
+        
+        # Create conv_params from config
+        conv_params = {
+            'kernel_type': config['kernel_type'],
+            'kernel_size': config['kernel_size'],
+            'sigma': config['sigma'],
+            'norm_factor': config['norm_factor'],
+            'exc_inh_balance': config['exc_inh_balance']
+        }
+        
+        # Only optimize the way convolutional output is processed
+        processing_types = ['direct', 'weighted_sum', 'max']  # Remove 'conv' from options
+        conv_processing_type = trial.suggest_categorical('conv_processing_type', processing_types)
+        config['conv_processing_type'] = conv_processing_type
+    
     print(f"config: {config}")
 
     #Establecemos valores para los parámetros que nos interesan:
@@ -136,7 +178,12 @@ def objective(trial):
     nu2=(config['nu2'],config['nu2'])
     try:
         # Run the experiment with GPU enabled by default
-        mse_B, mse_C, f1, precision, recall = experiment(nu1, nu2, a, r, snn_process_layer_neurons_size, config['threshold'], config['decay'], T, expansion, path, trial.number + 1,trial=trial)
+        mse_B, mse_C, f1, precision, recall = experiment(
+            nu1, nu2, a, r, snn_process_layer_neurons_size, 
+            config['threshold'], config['decay'], T, expansion, path, 
+            trial.number + 1, conv_params=conv_params, 
+            conv_processing_type=conv_processing_type, trial=trial
+        )
         
         return -f1
     except Exception as e:
@@ -151,10 +198,10 @@ if __name__ == "__main__":
     path='Nuevos datasets\\iops\\preliminar\\train_procesado_javi\\1c35dbf57f55f5e4_filled.csv'
     dataset_name=path.split('\\')[1]
     snn_process_layer_neurons_size=100
-    use_conv_layer=False
+    use_conv_layer=True
     # path='Nuevos datasets/Callt2/preliminar\\train_label_filled.csv'
     # parser.add_argument('-d', '--data_path', type=str, default='Nuevos datasets\\Callt2\\preliminar\\train_label_filled.csv', help='Ruta al archivo de datos CSV')
-    parser.add_argument('-n', '--n_trials', type=int, default=50, help='Número de trials para Optuna')
+    parser.add_argument('-n', '--n_trials', type=int, default=1, help='Número de trials para Optuna')
     parser.add_argument('--device', type=str, choices=['cpu', 'gpu'], default='cpu', help='Device to use (cpu/gpu)')
     args = parser.parse_args()
 
@@ -169,11 +216,12 @@ if __name__ == "__main__":
             "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
             "use_conv_layer": use_conv_layer,
             "device": str(device),
-            "date_starting_trials": date_starting_trials
+            "date_starting_trials": date_starting_trials,
+            "conv_layer_optimized": use_conv_layer  # Flag to indicate improved conv layer
         },
         project_name="TFM",
         entity="jgs00069-university-of-ja-n",
-        name=f"study-{dataset_name}-n{snn_process_layer_neurons_size}-{date_starting_trials}"
+        name=f"study-improved-conv-{dataset_name}-n{snn_process_layer_neurons_size}-{date_starting_trials}"
     )
     
     try:
