@@ -1,6 +1,7 @@
 venv
 *.pyc
-./resultados
+resultados/
+wandb/
 preprocesamiento/CalIt2/__pycache__
 preprocesamiento/CalIt2/__pycache__/CalIt2_check_every_row_is_repeated_2_times.cpython-310.pyc
 preprocesamiento/CalIt2/__pycache__/CalIt2_fill_label_field.cpython-310.pyc
