@@ -1,0 +1,11 @@
+{
+    "nu1": "0.2",
+    "nu2": "0.2",
+    "snn_process_layer_neurons_size": 200,
+    "threshold": 0.6,
+    "decay": 0.8,
+    "amp": 0.2,
+    "epoch": 20,
+    "reso": 0.02,
+    "recurrencia": true
+}

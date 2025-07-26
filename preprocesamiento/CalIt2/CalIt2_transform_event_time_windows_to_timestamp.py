@@ -1,5 +1,5 @@
 import pandas as pd
-import time
+import os
 from datetime import datetime
 import pytz
 
@@ -22,9 +22,14 @@ def convert_to_timestamp(date_str, time_str, event_type):
     return result
 
 def CalIt2_transform_event_time_windows_to_timestamp():
-    # Ruta del archivo a revisar
-    input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/CalIt2.events.csv'
-    output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_events.csv'
+    # Ruta del archivo a revisar LINUX
+    # input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/CalIt2.events.csv'
+    # output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_events.csv'
+    
+    base_path = os.path.abspath(os.path.dirname(__file__))
+
+    input_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'CalIt2.events.csv')
+    output_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_events.csv')
 
 
     # Leer el archivo CSV

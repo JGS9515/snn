@@ -9,12 +9,19 @@
 #     df = pd.read_csv('/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv')
 
 import pandas as pd
+import os
 
 def CalIt2_fill_missing_timestamps(add_status_column: bool):
 
-    # Ruta del archivo a revisar
-    input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv'
-    output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_filled.csv'
+    # Ruta del archivo a revisar LINUX
+    # input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv'
+    # output_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train_filled.csv'
+
+    # Ruta relativa del archivo a revisar
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    input_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train.csv')
+    output_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_filled.csv')
+
 
     # Leer el archivo CSV
     df = pd.read_csv(input_path)

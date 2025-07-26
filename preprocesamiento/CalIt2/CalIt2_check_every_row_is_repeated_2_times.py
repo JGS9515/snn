@@ -1,8 +1,15 @@
 import pandas as pd
+import os
 
 def CalIt2_check_every_row_is_repeated_2_times():
-    # Ruta del archivo a revisar
-    input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv'
+    
+    # Ruta del archivo a revisar LINUX
+    # input_path = f'/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv'
+
+    # Obtener la ruta base del script actual
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    # Ruta relativa del archivo a revisar
+    input_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train.csv')
 
     # Leer el archivo CSV
     df = pd.read_csv(input_path)

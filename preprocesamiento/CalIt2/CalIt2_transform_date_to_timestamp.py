@@ -3,6 +3,7 @@ import time
 import pandas as pd
 from datetime import datetime
 import pytz
+import os
 
 
 # Function to convert date and time to Unix timestamp
@@ -43,11 +44,15 @@ def convert_to_timestamp(date_str, time_str):
 
 # Read the CSV file using pandas
 def CalIt2_transform_date_to_timestamp():
+    base_path = os.path.dirname(__file__)
+    input_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'CalIt2.csv')
+    output_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train.csv')
 
-    df = pd.read_csv('/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/CalIt2.csv')
+
+    df = pd.read_csv(input_path)
 
     # Open the output CSV file
-    with open('/home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv', 'w', newline='') as outfile:
+    with open(output_path, 'w', newline='') as outfile:
         writer = csv.writer(outfile)
         
         # Write the header of the CSV file
@@ -63,6 +68,6 @@ def CalIt2_transform_date_to_timestamp():
             # label = 'out flow' if flow_id == '7' else 'in flow'
             writer.writerow([timestamp, row['Count']])
 
-    print(f'Archivo con tranin con dates transformados a timestamps guardado en: /home/javier/Practicas/Nuevos datasets/Callt2/preliminar/train.csv')
+    print(f'Archivo con tranin con dates transformados a timestamps guardado en: {output_path}')
 
 # CalIt2_transform_date_to_timestamp()
