@@ -102,8 +102,20 @@ def experiment(nu1, nu2, a, r, n, threshold, decay, T, expansion, path, n_trial,
         device=device
     )
 
-    mse_B, mse_C, f1, precision, recall  = guardar_resultados(spikes,spikes_conv,data_test,n,snn_input_layer_neurons_size,n_trial,date_starting_trials,dataset_name,snn_process_layer_neurons_size,trial=trial)
-    return mse_B, mse_C, f1, precision, recall
+    mse_B, mse_C, f1_B, precision_B, recall_B, f1_C, precision_C, recall_C = guardar_resultados(
+        spikes, spikes_conv, data_test, n, snn_input_layer_neurons_size, n_trial,
+        date_starting_trials, dataset_name, snn_process_layer_neurons_size, trial=trial
+    )
+    
+    
+    # Choose which F1 score to return based on whether we're using conv layer
+    if use_conv_layer and f1_C is not None:
+        # Return the better F1 score between B and C
+        best_f1 = max(f1_B if f1_B is not None else 0, f1_C if f1_C is not None else 0)
+        return mse_B, mse_C, f1_B, precision_B, recall_B, f1_C, precision_C, recall_C, best_f1
+    else:
+        # Return layer B metrics if not using conv layer or if conv layer failed
+        return mse_B, mse_C, f1_B, precision_B, recall_B, f1_C, precision_C, recall_C, best_f1
 
 def objective(trial):
 
@@ -177,18 +189,22 @@ def objective(trial):
     nu1=(config['nu1'],config['nu1'])
     nu2=(config['nu2'],config['nu2'])
     try:
-        # Run the experiment with GPU enabled by default
-        mse_B, mse_C, f1, precision, recall = experiment(
+        # Run the experiment with all parameters
+        mse_B, mse_C, f1_B, precision_B, recall_B, f1_C, precision_C, recall_C, best_f1 = experiment(
             nu1, nu2, a, r, snn_process_layer_neurons_size, 
             config['threshold'], config['decay'], T, expansion, path, 
             trial.number + 1, conv_params=conv_params, 
             conv_processing_type=conv_processing_type, trial=trial
         )
         
-        return -f1
+        # Make sure we have a valid F1 score
+        if best_f1 is not None and not np.isnan(best_f1) and not np.isinf(best_f1):
+            return -best_f1  # Negate for minimization
+        else:
+            print("Warning: Invalid F1 score. Returning infinity.")
+            return float('inf')
     except Exception as e:
         print(f"Trial failed with error: {e}")
-        # Return a very low score for failed trials
         return float('inf')
 
 if __name__ == "__main__":
@@ -243,9 +259,9 @@ if __name__ == "__main__":
             "best_params": study.best_params,
             "best_trial": best_trial_number+1,
             "snn_process_layer_neurons_size": snn_process_layer_neurons_size,
-            "device": str(device),  # Convert device to string
+            "device": str(device),
             "use_conv_layer": use_conv_layer,
-            "best_f1": -study.best_value,
+            "best_f1": -study.best_value if not np.isinf(study.best_value) else None,
             "amoumt_of_trials": args.n_trials,
             "duration_seconds": duration.total_seconds(),
             "start_time": start_time.isoformat(),
