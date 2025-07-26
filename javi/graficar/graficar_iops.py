@@ -5,7 +5,7 @@ import os
 
 # Construir la ruta correcta al archivo
 base_path = os.path.dirname(__file__)
-csv_path = os.path.join(base_path, '..', '..','Nuevos datasets', 'iops', 'preliminar', 'train_procesado_javi' ,'1c35dbf57f55f5e4_filled.csv')
+csv_path = os.path.join(base_path, '..', '..', 'Nuevos datasets', 'Callt2', 'preliminar', 'train_label_filled.csv')
 
 # Cargar los datos
 df = pd.read_csv(csv_path)
