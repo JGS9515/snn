@@ -162,3 +162,48 @@ El script `ejecutar_experimentacion_final.py` depende de los siguientes módulos
 - Abrir archivo `ver_spikes.R`
 - Actualizar ruta a los resultados del experimento que quieras visualizar
 - Ejecutar los comandos `Ctrl+Shift+S`
+
+
+# How SNNs Work for Anomaly Detection
+
+You've touched on a fundamental misconception about how SNNs work for anomaly detection. Let me explain:
+
+## Spikes vs. Anomalies
+
+1. **Neuron Spikes**:
+   - Each SNN neuron can either fire (1) or not fire (0) at each time step
+   - Your `spikes` variable is a matrix with shape `[neurons × time steps]`
+   - Each entry is binary (0 or 1) at the individual neuron level
+
+2. **Spike Aggregation**:
+   ```python
+   spikes_1d = spikes.sum(axis=1)
+   ```
+   - This sums activity across neurons, giving you a count of how many neurons fired at each time step
+   - If 3 neurons fired at time t, then `spikes_1d[t] = 3`
+   - This count can be any non-negative integer (0, 1, 2, 3, etc.)
+
+3. **Anomaly Detection**:
+   - The raw neural activity (spikes) needs to be interpreted to make predictions
+   - Currently: `binary_predictions = (spikes_1d > 0).astype(float)`
+   - This means "predict anomaly if ANY neuron fires"
+
+## Current Implementation Issue
+
+Looking at your weight initialization:
+```python
+w=(0.05 + 0.1 * torch.randn(source_layer.n, target_layer.n)).to(device)
+```
+
+These small weights mean neurons rarely reach their firing threshold, resulting in very few spikes. This explains why:
+1. Your spikes file shows all zeros
+2. With few spikes, your model misses most anomalies
+
+## Solution
+
+Replace this line with:
+```python
+w=(0.3 + 0.2 * torch.randn(source_layer.n, target_layer.n)).to(device)
+```
+
+This will significantly increase neural activity, giving your model the raw material it needs to detect anomalies effectively.
