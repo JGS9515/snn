@@ -141,6 +141,9 @@ def create_gaussian_kernel(kernel_size=5, sigma=1.0, device='cpu'):
 
 # Improved function with more kernel options
 def create_kernel(kernel_type='gaussian', kernel_size=5, sigma=1.0, device='cpu'):
+    # Ensure kernel_size is an integer
+    kernel_size = int(kernel_size)
+    
     if kernel_type == 'gaussian':
         x = torch.linspace(-kernel_size//2, kernel_size//2, kernel_size, device=device)
         kernel = torch.exp(-x**2 / (2*sigma**2))
@@ -161,151 +164,208 @@ def create_kernel(kernel_type='gaussian', kernel_size=5, sigma=1.0, device='cpu'
 
 def crear_red(snn_input_layer_neurons_size, decaimiento, umbral, nu1, nu2, n, T, 
               use_conv_layer=True, conv_params=None, device='cpu'):
-    # Create the network
-    print('crear_red')
-    print(device)
-    
-    # Set default conv_params if not provided
-    if conv_params is None:
-        conv_params = {
-            'kernel_type': 'gaussian',
-            'kernel_size': 5,
-            'sigma': 1.0,
-            'norm_factor': 0.5,
-            'exc_inh_balance': 0.0  # New parameter: 0 means balanced, +ve means more excitation
-        }
-    
-    network = Network(dt=1.0, learning=True).to(device)
-    
-    # Create layers and move to GPU
-    source_layer = Input(n=snn_input_layer_neurons_size, traces=True).to(device)
-    target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
-    
-    network.add_layer(layer=source_layer, name="A")
-    network.add_layer(layer=target_layer, name="B")
-    
-    conv_layer = None
-    if use_conv_layer:
-        # Allow different neuron model for conv layer
-        conv_layer = AdaptiveLIFNodes(
-            n=n, 
-            traces=True, 
-            thresh=umbral,
-            tc_decay=decaimiento,
-            tc_trace=20.0  # Slower trace decay for conv layer
-        ).to(device)
-        network.add_layer(layer=conv_layer, name="C")
-    
-    # Create forward and recurrent connections...
-    forward_connection = Connection(
-        source=source_layer,
-        target=target_layer,
-        w=(0.3 + 0.2 * torch.randn(source_layer.n, target_layer.n)).to(device),
-        update_rule=PostPre, 
-        nu=nu1
-    ).to(device)
-    
-    network.add_connection(connection=forward_connection, source="A", target="B")
-    
-    recurrent_connection = Connection(
-        source=target_layer,
-        target=target_layer,
-        w=(0.025 * (torch.eye(target_layer.n) - 1)).to(device), 
-        update_rule=PostPre, 
-        nu=nu2
-    ).to(device)
-    
-    network.add_connection(connection=recurrent_connection, source="B", target="B")
-    
-    # Add convolutional layer and connection only if use_conv_layer is True
-    if use_conv_layer:
-        # Get kernel parameters
-        kernel_type = conv_params.get('kernel_type', 'gaussian')
-        kernel_size = int(conv_params.get('kernel_size', 5))  # Ensure kernel_size is an integer
-        sigma = float(conv_params.get('sigma', 1.0))  # Ensure sigma is a float
-        norm_factor = float(conv_params.get('norm_factor', 0.5))  # Ensure norm_factor is a float
-        exc_inh_balance = float(conv_params.get('exc_inh_balance', 0.0))  # Ensure exc_inh_balance is a float
+    try:
+        print("Starting crear_red function...")
+        # Cast n to int at the beginning of the function to ensure all uses are integer
+        n = int(n)
+        snn_input_layer_neurons_size = int(snn_input_layer_neurons_size)
+        T = int(T)
+        print(f"Initialized parameters: n={n}, input_size={snn_input_layer_neurons_size}, T={T}")
         
-        # Create kernel
-        kernel = create_kernel(
-            kernel_type=kernel_type,
-            kernel_size=kernel_size,
-            sigma=sigma,
-            device=device
-        ).repeat(n, 1, 1)
+        network = Network(dt=1.0, learning=True).to(device)
+        print("Created network")
         
-        # Create weight matrix with the kernel
-        weights = torch.zeros(n, n, device=device)
-        center = kernel_size // 2
+        # Create layers with integer dimensions
+        source_layer = Input(n=snn_input_layer_neurons_size, traces=True).to(device)
+        target_layer = LIFNodes(n=n, traces=True, thresh=umbral, tc_decay=decaimiento).to(device)
+        print("Created source and target layers")
         
-        for i in range(n):
-            start = max(0, i - center)
-            end = min(n, i + center + 1)
-            k_start = max(0, center - i)
-            k_end = kernel_size - max(0, i + center + 1 - n)
-            weights[i, start:end] = kernel[0,0,k_start:k_end]
+        network.add_layer(layer=source_layer, name="A")
+        network.add_layer(layer=target_layer, name="B")
+        print("Added layers A and B to network")
         
-        # Apply excitatory/inhibitory balance
-        if exc_inh_balance != 0:
-            # Add more excitatory or inhibitory bias based on the parameter
-            mask = torch.rand(n, n, device=device) < 0.5 + exc_inh_balance/2
-            weights = weights * (1 + 0.2 * mask.float() - 0.1)
+        conv_layer = None
+        if use_conv_layer:
+            try:
+                print("Creating convolutional layer...")
+                conv_layer = AdaptiveLIFNodes(
+                    n=n,
+                    traces=True, 
+                    thresh=umbral,
+                    tc_decay=decaimiento,
+                    tc_trace=20.0
+                ).to(device)
+                network.add_layer(layer=conv_layer, name="C")
+                print("Successfully created and added conv layer C")
+            except Exception as e:
+                print(f"Error creating conv layer: {e}")
+                raise
         
-        # Add skip connections (identity) to preserve important information
-        # This helps avoid losing critical spike patterns through convolution
-        weights = weights + 0.1 * torch.eye(n, device=device)
+        try:
+            print("Creating basic connections...")
+            # Create connections with integer dimensions
+            forward_connection = Connection(
+                source=source_layer,
+                target=target_layer,
+                w=(0.3 + 0.2 * torch.randn(snn_input_layer_neurons_size, n)).to(device),
+                update_rule=PostPre, 
+                nu=nu1
+            ).to(device)
+            print("Created forward connection")
+            
+            network.add_connection(connection=forward_connection, source="A", target="B")
+            print("Added forward connection to network")
+            
+            recurrent_connection = Connection(
+                source=target_layer,
+                target=target_layer,
+                w=(0.025 * (torch.eye(n) - 1)).to(device), 
+                update_rule=PostPre, 
+                nu=nu2
+            ).to(device)
+            print("Created recurrent connection")
+            
+            network.add_connection(connection=recurrent_connection, source="B", target="B")
+            print("Added recurrent connection to network")
+        except Exception as e:
+            print(f"Error creating basic connections: {e}")
+            raise
         
-        conv_connection = Connection(
-            source=target_layer,
-            target=conv_layer,
-            w=weights,
-            update_rule=PostPre,
-            nu=nu2,
-            norm=float(norm_factor * kernel_size)  # Ensure this is a float
-        ).to(device)
+        if use_conv_layer:
+            try:
+                print("Setting up convolutional layer parameters...")
+                # Get kernel parameters and ensure integers where needed
+                kernel_type = str(conv_params.get('kernel_type', 'gaussian'))
+                kernel_size = int(conv_params.get('kernel_size', 5))
+                sigma = float(conv_params.get('sigma', 1.0))
+                norm_factor = float(conv_params.get('norm_factor', 0.5))
+                exc_inh_balance = float(conv_params.get('exc_inh_balance', 0.0))
+                
+                print(f"Creating kernel with params: type={kernel_type}, size={kernel_size}, sigma={sigma}")
+                
+                # Create base kernel
+                kernel = create_kernel(
+                    kernel_type=kernel_type,
+                    kernel_size=kernel_size,
+                    sigma=sigma,
+                    device=device
+                )
+                print("Created base kernel")
+                
+                # Extract the kernel values and ensure it's a tensor
+                kernel_values = kernel[0, 0].clone()
+                print(f"Kernel shape: {kernel.shape}, values shape: {kernel_values.shape}")
+                
+                # Create weight matrix directly
+                weights = torch.zeros(n, n, device=device)
+                center = kernel_size // 2
+                print(f"Creating weight matrix with dimensions {n}x{n}")
+                
+                try:
+                    print("Building weight matrix...")
+                    # Create indices for the weight matrix
+                    rows = torch.arange(n, device=device)
+                    for offset in range(-center, center + 1):
+                        cols = torch.clamp(rows + offset, 0, n - 1)
+                        kernel_idx = offset + center
+                        print(f"Processing offset {offset}, kernel_idx {kernel_idx}")
+                        weights[rows, cols] = kernel_values[kernel_idx]
+                except Exception as e:
+                    print(f"Error in weight matrix creation: {e}")
+                    print(f"Debug info - n: {n}, center: {center}, kernel_values len: {len(kernel_values)}")
+                    raise
+                
+                print("Applying excitatory/inhibitory balance...")
+                # Apply excitatory/inhibitory balance
+                if exc_inh_balance != 0:
+                    mask = (torch.rand(n, n, device=device) < 0.5 + exc_inh_balance/2).float()
+                    weights = weights * (1 + 0.2 * mask - 0.1)
+                
+                # Add skip connections
+                weights = weights + 0.1 * torch.eye(n, device=device)
+                print("Added skip connections")
+                
+                print(f"Final weights shape: {weights.shape}")
+                
+                print("Creating convolutional connections...")
+                # Create connections with explicit float conversion for norm
+                norm_value = float(norm_factor) * float(kernel_size)  # Explicit float conversion
+                print(f"Using norm value: {norm_value}")
+                
+                # Convert nu2 to float if it's a tuple
+                nu2_value = float(nu2[0] if isinstance(nu2, tuple) else nu2)
+                print(f"Using nu2 value: {nu2_value}")
+                
+                conv_connection = Connection(
+                    source=target_layer,
+                    target=conv_layer,
+                    w=weights,
+                    update_rule=PostPre,
+                    nu=nu2_value,  # Use the float value instead of tuple
+                    norm=norm_value
+                ).to(device)
+                
+                network.add_connection(conv_connection, "B", "C")
+                print("Added conv connection to network")
+                
+                # Feedback connection with explicit float conversion
+                feedback_connection = Connection(
+                    source=conv_layer,
+                    target=target_layer,
+                    w=0.05 * torch.randn(n, n, device=device),
+                    update_rule=PostPre,
+                    nu=nu2_value * 0.5  # Use the float value instead of tuple
+                ).to(device)
+                
+                network.add_connection(feedback_connection, "C", "B")
+                print("Added feedback connection to network")
+            except Exception as e:
+                print(f"Error in convolutional layer setup: {e}")
+                print(f"Error type: {type(e)}")
+                print(f"Error args: {e.args}")
+                print(f"nu2 type: {type(nu2)}, value: {nu2}")  # Additional debugging info
+                raise
         
-        network.add_connection(conv_connection, "B", "C")
+        try:
+            print("Creating monitors...")
+            # Create monitors
+            source_monitor = Monitor(
+                obj=source_layer,
+                state_vars=("s",),
+                time=T,
+            )
+            target_monitor = Monitor(
+                obj=target_layer,
+                state_vars=("s", "v"),
+                time=T,
+            )
+            print("Created source and target monitors")
+            
+            network.add_monitor(monitor=source_monitor, name="X")
+            network.add_monitor(monitor=target_monitor, name="Y")
+            print("Added basic monitors to network")
+            
+            conv_monitor = None
+            if use_conv_layer:
+                conv_monitor = Monitor(
+                    obj=conv_layer,
+                    state_vars=("s", "v"),
+                    time=T,
+                )
+                network.add_monitor(monitor=conv_monitor, name="Conv_mon")
+                print("Added conv monitor to network")
+        except Exception as e:
+            print(f"Error creating monitors: {e}")
+            raise
+            
+        print("Successfully completed crear_red function")
+        return [network, source_monitor, target_monitor, conv_monitor]
         
-        # Optional: Add a feedback connection from conv layer back to target layer
-        # This creates a bidirectional flow of information
-        feedback_connection = Connection(
-            source=conv_layer,
-            target=target_layer,
-            w=0.05 * torch.randn(n, n, device=device),
-            update_rule=PostPre,
-            nu=nu2 * 0.5,  # Lower learning rate for feedback
-        ).to(device)
-        
-        network.add_connection(feedback_connection, "C", "B")
-    
-    #Creamos los monitores. Sirven para registrar los spikes y voltajes:
-    #Spikes de entrada (para depurar que se esté haciendo bien, si se quiere):
-    # Create monitors
-    source_monitor = Monitor(
-        obj=source_layer,
-        state_vars=("s",),  #Registramos sólo los spikes.
-        time=T,
-    )
-    #Spikes de la capa recurrente (lo que nos interesa):
-    target_monitor = Monitor(
-        obj=target_layer,
-        state_vars=("s", "v"),  #Registramos spikes y voltajes, por si nos interesa lo segundo también.
-        time=T,
-    )
-    
-    network.add_monitor(monitor=source_monitor, name="X")
-    network.add_monitor(monitor=target_monitor, name="Y")
-    
-    conv_monitor = None
-    if use_conv_layer:
-        conv_monitor = Monitor(
-            obj=conv_layer,
-            state_vars=("s", "v"),
-            time=T,
-        )
-        network.add_monitor(monitor=conv_monitor, name="Conv_mon")
-    
-    return [network, source_monitor, target_monitor, conv_monitor]
+    except Exception as e:
+        print(f"Top level error in crear_red: {e}")
+        print(f"Error type: {type(e)}")
+        print(f"Error args: {e.args}")
+        raise
 
 
 def ejecutar_red(secuencias, network, source_monitor, target_monitor, conv_monitor, T, 
